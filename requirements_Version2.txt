@@ -1,0 +1,4 @@
+stix2
+taxii2-client
+opencti-client
+# Add other dependencies as needed
