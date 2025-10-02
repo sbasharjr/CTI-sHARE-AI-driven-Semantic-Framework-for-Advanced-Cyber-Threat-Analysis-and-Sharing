@@ -73,8 +73,8 @@ Dataset-Semantic-Framework/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/sbasharjr/Dataset-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing.git
-cd Dataset-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing
+git clone https://github.com/sbasharjr/Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing.git
+cd Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing
 ```
 
 2. Create and activate virtual environment:
