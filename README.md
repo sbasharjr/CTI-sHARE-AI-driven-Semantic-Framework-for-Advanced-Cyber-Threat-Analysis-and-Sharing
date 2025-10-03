@@ -316,8 +316,8 @@ If you use this framework in your research, please cite:
 ```bibtex
 @software{threat_analysis_framework,
   title={AI-driven Semantic Framework for Advanced Cyber Threat Analysis and Sharing},
-  author={Cyber Threat Intelligence Team},
-  year={2024},
+  author={Suleiman Sani Bashar},
+  year={2025},
   url={https://github.com/sbasharjr/Dataset-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing}
 }
 ```
@@ -353,5 +353,5 @@ Future enhancements:
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2024  
+**Last Updated**: 2025
 **Status**: Production Ready
