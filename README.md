@@ -18,6 +18,8 @@ This framework leverages advanced artificial intelligence techniques including m
 ### 2. **Deep Learning Models**
 - Bidirectional LSTM for sequential threat analysis
 - CNN for pattern recognition in threat data
+- **Transformer models (BERT, GPT)** for advanced NLP
+- **Graph Neural Networks** for relationship analysis
 - Custom architectures with dropout and regularization
 - Early stopping and model checkpointing
 
@@ -34,6 +36,9 @@ This framework leverages advanced artificial intelligence techniques including m
 - Alert generation and monitoring
 - Configurable detection thresholds
 - Event callbacks and notifications
+- **Automated threat response** with configurable rules
+- **Web-based dashboard** for visualization
+- **Multi-language support** (8+ languages)
 
 ### 5. **Threat Intelligence Sharing**
 - RESTful API for threat submission and retrieval
@@ -41,6 +46,9 @@ This framework leverages advanced artificial intelligence techniques including m
 - Real-time threat analysis endpoints
 - Statistics and reporting
 - CORS-enabled for web integration
+- **Federated learning** for privacy-preserving collaboration
+- **Blockchain-based verification** for immutable records
+- **SIEM integration** (Splunk, QRadar)
 
 ## Architecture
 
@@ -223,6 +231,14 @@ python examples/realtime_detection.py
 
 # API server example
 python examples/api_server.py
+
+# Advanced features
+python examples/transformer_example.py       # BERT/GPT models
+python examples/gnn_example.py              # Graph neural networks
+python examples/federated_learning_example.py  # Federated learning
+python examples/automated_response_example.py  # Automated response
+python examples/blockchain_example.py        # Blockchain verification
+python examples/i18n_example.py             # Multi-language support
 ```
 
 ## Configuration
@@ -337,18 +353,27 @@ This framework leverages:
 - NLTK for natural language processing
 - Flask for API development
 - pandas for data manipulation
+- PyTorch for transformer models and GNNs
+- Transformers library for BERT/GPT models
+
+## Documentation
+
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Advanced Features Guide](docs/ADVANCED_FEATURES.md)
+- API documentation in `docs/` directory
+- Example scripts in `examples/` directory
 
 ## Roadmap
 
 Future enhancements:
-- [ ] Transformer-based models (BERT, GPT)
-- [ ] Graph neural networks for relationship analysis
-- [ ] Federated learning for privacy-preserving threat sharing
-- [ ] Integration with SIEM systems
-- [ ] Automated threat response capabilities
-- [ ] Web-based dashboard for visualization
-- [ ] Multi-language support
-- [ ] Blockchain for threat intelligence verification
+- [x] Transformer-based models (BERT, GPT)
+- [x] Graph neural networks for relationship analysis
+- [x] Federated learning for privacy-preserving threat sharing
+- [x] Integration with SIEM systems
+- [x] Automated threat response capabilities
+- [x] Web-based dashboard for visualization
+- [x] Multi-language support
+- [x] Blockchain for threat intelligence verification
 
 ---
 
