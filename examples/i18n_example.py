@@ -2,6 +2,10 @@
 Example: Multi-language Support (i18n)
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.i18n.translation import TranslationManager, get_translation_manager
 
 

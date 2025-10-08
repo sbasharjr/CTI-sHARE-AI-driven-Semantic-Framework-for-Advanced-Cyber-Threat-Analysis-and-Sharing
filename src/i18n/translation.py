@@ -4,7 +4,7 @@ Multi-language support (Internationalization - i18n)
 
 import json
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import logging
 
 logger = logging.getLogger(__name__)

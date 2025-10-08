@@ -2,6 +2,10 @@
 Example: Using Graph Neural Networks for Threat Relationship Analysis
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.models.gnn_models import ThreatGraphAnalyzer
 import numpy as np
 

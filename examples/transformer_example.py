@@ -2,6 +2,10 @@
 Example: Using Transformer-based Models (BERT, GPT) for Threat Detection
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.models.transformer_models import ThreatDetectionBERT, ThreatDetectionGPT
 import numpy as np
 
