@@ -341,14 +341,14 @@ This framework leverages:
 ## Roadmap
 
 Future enhancements:
-- [ ] Transformer-based models (BERT, GPT)
-- [ ] Graph neural networks for relationship analysis
-- [ ] Federated learning for privacy-preserving threat sharing
-- [ ] Integration with SIEM systems
-- [ ] Automated threat response capabilities
-- [ ] Web-based dashboard for visualization
-- [ ] Multi-language support
-- [ ] Blockchain for threat intelligence verification
+- [x] Transformer-based models (BERT, GPT)
+- [x] Graph neural networks for relationship analysis
+- [x] Federated learning for privacy-preserving threat sharing
+- [x] Integration with SIEM systems
+- [x] Automated threat response capabilities
+- [x] Web-based dashboard for visualization
+- [x] Multi-language support
+- [x] Blockchain for threat intelligence verification
 
 ---
 
