@@ -2,10 +2,10 @@
 numpy>=1.21.0
 pandas>=1.3.0
 scikit-learn>=1.0.0
-tensorflow>=2.8.0
+tensorflow>=1.21.6
 keras>=2.8.0
-torch>=1.10.0
-transformers>=4.15.0
+torch>=1.21.6
+transformers>=1.21.6
 
 # Natural Language Processing
 nltk>=3.6
