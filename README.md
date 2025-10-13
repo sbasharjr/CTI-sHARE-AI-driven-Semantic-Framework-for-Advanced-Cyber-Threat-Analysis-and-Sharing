@@ -105,12 +105,34 @@ python -c "import nltk; nltk.download('stopwords'); nltk.download('punkt'); nltk
 
 The easiest way to deploy the framework is using Docker:
 
-1. Build and run with Docker Compose:
+#### Quick Start with Script
 ```bash
-docker compose up -d
+# Make the script executable (first time only)
+chmod +x docker-start.sh
+
+# Start the framework
+./docker-start.sh up
+
+# View logs
+./docker-start.sh logs
+
+# Stop the framework
+./docker-start.sh stop
 ```
 
-2. Or build and run with Docker:
+#### Manual Docker Compose
+```bash
+# Start the framework
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop the framework
+docker compose down
+```
+
+#### Manual Docker Commands
 ```bash
 # Build the image
 docker build -t threat-analysis-framework .
@@ -127,12 +149,9 @@ docker run threat-analysis-framework python main.py analyze
 docker run threat-analysis-framework python main.py train
 ```
 
-3. Access the API at `http://localhost:5000/api/health`
+Access the API at `http://localhost:5000/api/health`
 
-4. Stop the containers:
-```bash
-docker compose down
-```
+For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/DOCKER.md).
 
 ## Quick Start
 

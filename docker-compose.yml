@@ -15,6 +15,12 @@ services:
       - ./logs:/app/logs
     restart: unless-stopped
     command: ["python", "main.py", "api", "--host", "0.0.0.0", "--port", "5000"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # Optional: Redis for caching (if needed)
   # redis:
