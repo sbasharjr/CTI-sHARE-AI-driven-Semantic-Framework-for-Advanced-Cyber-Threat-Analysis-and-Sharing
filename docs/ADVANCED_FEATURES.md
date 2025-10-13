@@ -459,6 +459,8 @@ stats = blockchain.blockchain.get_chain_statistics()
 
 ## Integration Example
 
+### Quick Integration Overview
+
 Here's how to use multiple advanced features together:
 
 ```python
@@ -499,6 +501,24 @@ siem.send_alert_to_all(alert)
 translator.set_language('es')
 translated_threat = translator.translate_threat_data(threat_data)
 ```
+
+### Complete Integration Example
+
+For a comprehensive demonstration of all features working together in a real-world scenario, see:
+
+```bash
+python examples/comprehensive_integration_example.py
+```
+
+This example demonstrates:
+- Complete threat detection pipeline using BERT and GPT
+- Relationship analysis with GNN
+- Privacy-preserving federated learning across multiple organizations
+- Blockchain-based threat verification
+- Automated SIEM integration and alerting
+- Rule-based automated response system
+- Multi-language threat intelligence translation
+- Dashboard setup for real-time monitoring
 
 ---
 
