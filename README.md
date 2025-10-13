@@ -284,7 +284,10 @@ python examples/realtime_detection.py
 # API server example
 python examples/api_server.py
 
-# Advanced features
+# Comprehensive integration (demonstrates all advanced features together)
+python examples/comprehensive_integration_example.py
+
+# Individual advanced features
 python examples/transformer_example.py       # BERT/GPT models
 python examples/gnn_example.py              # Graph neural networks
 python examples/federated_learning_example.py  # Federated learning
