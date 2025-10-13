@@ -101,6 +101,58 @@ pip install -r requirements.txt
 python -c "import nltk; nltk.download('stopwords'); nltk.download('punkt'); nltk.download('wordnet')"
 ```
 
+### Docker Deployment
+
+The easiest way to deploy the framework is using Docker:
+
+#### Quick Start with Script
+```bash
+# Make the script executable (first time only)
+chmod +x docker-start.sh
+
+# Start the framework
+./docker-start.sh up
+
+# View logs
+./docker-start.sh logs
+
+# Stop the framework
+./docker-start.sh stop
+```
+
+#### Manual Docker Compose
+```bash
+# Start the framework
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop the framework
+docker compose down
+```
+
+#### Manual Docker Commands
+```bash
+# Build the image
+docker build -t threat-analysis-framework .
+
+# Run the API server
+docker run -p 5000:5000 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/models:/app/models \
+  -v $(pwd)/logs:/app/logs \
+  threat-analysis-framework
+
+# Run in different modes
+docker run threat-analysis-framework python main.py analyze
+docker run threat-analysis-framework python main.py train
+```
+
+Access the API at `http://localhost:5000/api/health`
+
+For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/DOCKER.md).
+
 ## Quick Start
 
 ### Basic Usage
@@ -360,6 +412,7 @@ This framework leverages:
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [Advanced Features Guide](docs/ADVANCED_FEATURES.md)
+- [Docker Deployment Guide](docs/DOCKER.md)
 - API documentation in `docs/` directory
 - Example scripts in `examples/` directory
 
