@@ -389,7 +389,7 @@ If you use this framework in your research, please cite:
   title={CTI-sHARE-AI-driven Semantic Framework for Advanced Cyber Threat Analysis and Sharing},
   author={Suleiman Sani Bashar},
   year={2025},
-  url={https://github.com/sbasharjr/Dataset-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing}
+  url={https://github.com/sbasharjr/CTI-sHARE-AI-driven-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing.git}
 }
 ```
 
