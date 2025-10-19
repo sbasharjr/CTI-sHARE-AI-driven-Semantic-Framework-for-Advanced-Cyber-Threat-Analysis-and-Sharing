@@ -247,9 +247,9 @@ class FederatedLearningOrchestrator:
         
         logger.info(f"Initialized federated learning with {num_clients} clients")
     
-    def train_federated(self, client_data: List[Tuple[np.ndarray, np.ndarray]],
+    def train_federated(self, client_data: List[tuple[np.ndarray, np.ndarray]],
                        num_rounds: int = 10, local_epochs: int = 5,
-                       test_data: Optional[Tuple[np.ndarray, np.ndarray]] = None) -> Dict[str, Any]:
+                       test_data: Optional[tuple[np.ndarray, np.ndarray]] = None) -> Dict[str, Any]:
         """
         Run federated learning process
         
