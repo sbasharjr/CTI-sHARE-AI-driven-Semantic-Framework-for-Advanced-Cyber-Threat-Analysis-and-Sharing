@@ -15,6 +15,7 @@ from src.models.dl_models import ThreatDetectionLSTM, ThreatDetectionCNN
 from src.semantic_analysis.semantic_analyzer import ThreatSemanticAnalyzer
 from src.realtime.detector import RealTimeThreatDetector, ThreatMonitor
 from src.threat_sharing.api import ThreatSharingAPI
+from src.dashboard.dashboard import ThreatDashboard
 from src.utils.data_loader import ThreatDataLoader
 
 
@@ -134,6 +135,35 @@ def train_models():
     print("Training complete!")
 
 
+def run_dashboard(host='0.0.0.0', port=5001):
+    """Run web-based threat intelligence dashboard"""
+    print("\n=== Starting Threat Intelligence Dashboard ===\n")
+    
+    analyzer = ThreatSemanticAnalyzer()
+    detector = RealTimeThreatDetector(semantic_analyzer=analyzer)
+    detector.start()
+    
+    dashboard = ThreatDashboard(threat_detector=detector, semantic_analyzer=analyzer)
+    
+    print(f"Dashboard running on http://{host}:{port}")
+    print("\nAvailable endpoints:")
+    print("  GET  /")
+    print("  GET  /api/dashboard/stats")
+    print("  GET  /api/dashboard/threats/recent")
+    print("  GET  /api/dashboard/threats/timeline")
+    print("  GET  /api/dashboard/threats/categories")
+    print("  GET  /api/dashboard/threats/severity")
+    print("  GET  /api/dashboard/threats/geo")
+    print("  GET  /api/dashboard/health")
+    print("\nPress Ctrl+C to stop\n")
+    
+    try:
+        dashboard.run(host=host, port=port, debug=False)
+    except KeyboardInterrupt:
+        print("\nStopping dashboard...")
+        detector.stop()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='AI-driven Semantic Framework for Cyber Threat Analysis'
@@ -141,7 +171,7 @@ def main():
     
     parser.add_argument(
         'mode',
-        choices=['analyze', 'realtime', 'api', 'train'],
+        choices=['analyze', 'realtime', 'api', 'train', 'dashboard'],
         help='Operation mode'
     )
     
@@ -172,6 +202,8 @@ def main():
         run_api_server(host=args.host, port=args.port)
     elif args.mode == 'train':
         train_models()
+    elif args.mode == 'dashboard':
+        run_dashboard(host=args.host, port=args.port)
     
     print("\n" + "=" * 80)
     print("Done!")
