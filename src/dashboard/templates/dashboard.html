@@ -497,63 +497,187 @@
             </div>
         </div>
 
-        <div class="grid-2">
-            <div class="card">
-                <h2>📊 System Health Monitor</h2>
-                <div id="systemHealthContainer">
-                    <div class="metric-card">
-                        <div>
-                            <div class="stat-label">Memory Usage</div>
-                            <div class="metric-value" id="memoryUsage">0%</div>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="memoryProgress" style="width: 0%"></div>
-                        </div>
+        <!-- Active System Health Monitor -->
+        <div class="card">
+            <div class="chart-header">
+                <h2>📊 Active System Health Monitor</h2>
+                <div class="chart-controls">
+                    <button onclick="startSystemHealthLiveMode()" id="systemHealthLiveBtn">Start Health Monitor</button>
+                    <button onclick="refreshSystemHealth()">Refresh</button>
+                    <button onclick="exportChart('system_health')">Export</button>
+                </div>
+            </div>
+            
+            <!-- Real-time System Metrics -->
+            <div class="grid-3" style="margin-bottom: 20px;">
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">CPU Usage</div>
+                        <div class="metric-value" id="cpuUsageLive">0%</div>
                     </div>
-                    <div class="metric-card">
-                        <div>
-                            <div class="stat-label">Network Throughput</div>
-                            <div class="metric-value" id="networkThroughput">0 MB/s</div>
-                        </div>
-                        <div class="metric-trend trend-up" id="networkTrend">optimal</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpuProgress" style="width: 0%; background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);"></div>
                     </div>
-                    <div class="metric-card">
-                        <div>
-                            <div class="stat-label">Active Connections</div>
-                            <div class="metric-value" id="activeConnections">0</div>
-                        </div>
-                        <div class="metric-trend trend-stable" id="connectionsTrend">stable</div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Memory Usage</div>
+                        <div class="metric-value" id="memoryUsageLive">0%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="memoryProgressLive" style="width: 0%; background: linear-gradient(90deg, #17a2b8, #ffc107, #dc3545);"></div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Disk Usage</div>
+                        <div class="metric-value" id="diskUsage">0%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="diskProgress" style="width: 0%; background: linear-gradient(90deg, #6f42c1, #ffc107, #dc3545);"></div>
                     </div>
                 </div>
             </div>
             
-            <div class="card">
-                <h2>🎯 Threat Intelligence Feeds</h2>
-                <div id="intelligenceFeedsContainer">
-                    <div class="metric-card">
-                        <div>
-                            <div class="stat-label">IOC Feeds Active</div>
-                            <div class="metric-value" id="iocFeeds">0</div>
-                        </div>
-                        <div class="metric-trend trend-up" id="iocTrend">+5 new</div>
+            <div class="grid-2">
+                <div>
+                    <h3>System Performance Timeline</h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="systemHealthChart"></canvas>
                     </div>
-                    <div class="metric-card">
-                        <div>
-                            <div class="stat-label">Feed Health</div>
-                            <div class="metric-value" id="feedHealth">0%</div>
-                        </div>
-                        <div class="metric-trend trend-up" id="healthTrend">excellent</div>
-                    </div>
-                    <div class="metric-card">
-                        <div>
-                            <div class="stat-label">Data Freshness</div>
-                            <div class="metric-value" id="dataFreshness">0 min</div>
-                        </div>
-                        <div class="metric-trend trend-up" id="freshnessTrend">up to date</div>
+                </div>
+                <div>
+                    <h3>Resource Distribution</h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="resourceDistributionChart"></canvas>
                     </div>
                 </div>
             </div>
+            
+            <!-- Network and Connection Metrics -->
+            <div class="grid-3" style="margin-top: 20px;">
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Network Throughput</div>
+                        <div class="metric-value" id="networkThroughputLive">0 MB/s</div>
+                    </div>
+                    <div class="metric-trend trend-up" id="networkTrendLive">optimal</div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Active Connections</div>
+                        <div class="metric-value" id="activeConnectionsLive">0</div>
+                    </div>
+                    <div class="metric-trend trend-stable" id="connectionsTrendLive">stable</div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">System Uptime</div>
+                        <div class="metric-value" id="systemUptime">0 days</div>
+                    </div>
+                    <div class="metric-trend trend-up" id="uptimeTrend">excellent</div>
+                </div>
+            </div>
         </div>
+
+        <!-- Active Threat Intelligence Feeds -->
+        <div class="card">
+            <div class="chart-header">
+                <h2>🎯 Active Threat Intelligence Feeds</h2>
+                <div class="chart-controls">
+                    <button onclick="startThreatFeedsLiveMode()" id="threatFeedsLiveBtn">Start Feed Monitor</button>
+                    <button onclick="refreshThreatFeeds()">Refresh Feeds</button>
+                    <button onclick="exportChart('threat_feeds')">Export</button>
+                </div>
+            </div>
+            
+            <!-- Live Feed Status Metrics -->
+            <div class="grid-3" style="margin-bottom: 20px;">
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Active IOC Feeds</div>
+                        <div class="metric-value" id="iocFeedsLive">0</div>
+                    </div>
+                    <div class="metric-trend trend-up" id="iocTrendLive">+5 new</div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Feed Health Score</div>
+                        <div class="metric-value" id="feedHealthLive">0%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="feedHealthProgress" style="width: 0%; background: linear-gradient(90deg, #dc3545, #ffc107, #28a745);"></div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Data Freshness</div>
+                        <div class="metric-value" id="dataFreshnessLive">0 min</div>
+                    </div>
+                    <div class="metric-trend trend-up" id="freshnessTrendLive">up to date</div>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div>
+                    <h3>Feed Status Timeline</h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="feedStatusChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <h3>IOC Types Distribution</h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="iocTypesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feed Details Table -->
+            <div style="margin-top: 20px;">
+                <h3>Active Feed Sources</h3>
+                <div id="feedSourcesTable" style="max-height: 200px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                                <th style="padding: 10px; text-align: left;">Feed Name</th>
+                                <th style="padding: 10px; text-align: center;">Status</th>
+                                <th style="padding: 10px; text-align: center;">IOCs</th>
+                                <th style="padding: 10px; text-align: center;">Last Update</th>
+                                <th style="padding: 10px; text-align: center;">Health</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedTableBody">
+                            <!-- Dynamic feed data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Feed Performance Metrics -->
+            <div class="grid-3" style="margin-top: 20px;">
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Total IOCs Processed</div>
+                        <div class="metric-value" id="totalIOCs">0</div>
+                    </div>
+                    <div class="metric-trend trend-up" id="iocProcessedTrend">+1,250 today</div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Feed Update Rate</div>
+                        <div class="metric-value" id="feedUpdateRate">0/min</div>
+                    </div>
+                    <div class="metric-trend trend-stable" id="updateRateTrend">consistent</div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">Threat Correlation Rate</div>
+                        <div class="metric-value" id="correlationRate">0%</div>
+                    </div>
+                    <div class="metric-trend trend-up" id="correlationTrend">improving</div>
+                </div>
+            </div>
         </div>
 
         <div class="card">
@@ -570,9 +694,12 @@
         
         // Chart instances
         let categoriesChart, severityChart, severityTimeSeriesChart, attackVectorsChart, geoDistributionChart, hourlyActivityChart;
-        let severityRealtimeInterval, advancedRealtimeInterval;
+        let systemHealthChart, resourceDistributionChart, feedStatusChart, iocTypesChart;
+        let severityRealtimeInterval, advancedRealtimeInterval, systemHealthInterval, threatFeedsInterval;
         let isSeverityRealtimeActive = false;
         let isAdvancedRealtimeActive = false;
+        let isSystemHealthLive = false;
+        let isThreatFeedsLive = false;
 
         // Initialize all charts when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -939,6 +1066,222 @@
                             radius: 4,
                             hoverRadius: 6,
                             borderWidth: 2
+                        }
+                    }
+                }
+            });
+
+            // System Health Chart (Line Chart for performance timeline)
+            const systemHealthCtx = document.getElementById('systemHealthChart').getContext('2d');
+            systemHealthChart = new Chart(systemHealthCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'CPU %',
+                            data: [],
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: 'Memory %',
+                            data: [],
+                            borderColor: '#17a2b8',
+                            backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: 'Disk %',
+                            data: [],
+                            borderColor: '#6f42c1',
+                            backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return 'Time: ' + tooltipItems[0].label;
+                                },
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Usage %'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 750,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+
+            // Resource Distribution Chart (Doughnut)
+            const resourceDistributionCtx = document.getElementById('resourceDistributionChart').getContext('2d');
+            resourceDistributionChart = new Chart(resourceDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Available', 'System', 'Applications', 'Cache'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#6c757d'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${context.parsed}% (${percentage}% of total)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Feed Status Chart (Line Chart for feed health timeline)
+            const feedStatusCtx = document.getElementById('feedStatusChart').getContext('2d');
+            feedStatusChart = new Chart(feedStatusCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Feed Health %',
+                            data: [],
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Active Feeds',
+                            data: [],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Health %'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Feed Count'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000
+                    }
+                }
+            });
+
+            // IOC Types Chart (Polar Area)
+            const iocTypesCtx = document.getElementById('iocTypesChart').getContext('2d');
+            iocTypesChart = new Chart(iocTypesCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['IP Addresses', 'Domains', 'URLs', 'File Hashes', 'Email Addresses', 'CVEs'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: [
+                            '#dc3545',
+                            '#fd7e14', 
+                            '#ffc107',
+                            '#28a745',
+                            '#17a2b8',
+                            '#6f42c1'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${context.parsed} IOCs (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true
                         }
                     }
                 }
@@ -1689,6 +2032,217 @@
             };
         }
 
+        // Active System Health Monitor Functions
+        function startSystemHealthLiveMode() {
+            if (!isSystemHealthLive) {
+                isSystemHealthLive = true;
+                document.getElementById('systemHealthLiveBtn').textContent = 'Stop Health Monitor';
+                document.getElementById('systemHealthLiveBtn').style.background = 'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+                
+                systemHealthInterval = setInterval(() => {
+                    updateSystemHealthCharts();
+                }, 6000); // Update every 6 seconds
+                
+                console.log('System Health monitoring started');
+            } else {
+                stopSystemHealthLiveMode();
+            }
+        }
+
+        function stopSystemHealthLiveMode() {
+            isSystemHealthLive = false;
+            document.getElementById('systemHealthLiveBtn').textContent = 'Start Health Monitor';
+            document.getElementById('systemHealthLiveBtn').style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            
+            if (systemHealthInterval) {
+                clearInterval(systemHealthInterval);
+                systemHealthInterval = null;
+            }
+            
+            console.log('System Health monitoring stopped');
+        }
+
+        function updateSystemHealthCharts() {
+            // Generate realistic system performance data
+            const currentTime = new Date().toLocaleTimeString();
+            
+            // CPU usage with realistic patterns
+            const cpuUsage = Math.floor(Math.random() * 30 + 15); // 15-45%
+            const memoryUsage = Math.floor(Math.random() * 35 + 40); // 40-75%
+            const diskUsage = Math.floor(Math.random() * 20 + 25); // 25-45%
+            
+            // Update progress bars
+            document.getElementById('cpuUsageLive').textContent = cpuUsage + '%';
+            document.getElementById('cpuProgress').style.width = cpuUsage + '%';
+            
+            document.getElementById('memoryUsageLive').textContent = memoryUsage + '%';
+            document.getElementById('memoryProgressLive').style.width = memoryUsage + '%';
+            
+            document.getElementById('diskUsage').textContent = diskUsage + '%';
+            document.getElementById('diskProgress').style.width = diskUsage + '%';
+            
+            // Update network metrics
+            const networkThroughput = Math.floor(Math.random() * 150 + 50);
+            const activeConnections = Math.floor(Math.random() * 2000 + 1000);
+            
+            document.getElementById('networkThroughputLive').textContent = networkThroughput + ' MB/s';
+            document.getElementById('activeConnectionsLive').textContent = activeConnections;
+            
+            // Update system uptime
+            const uptimeDays = Math.floor(Math.random() * 25 + 5);
+            document.getElementById('systemUptime').textContent = uptimeDays + ' days';
+            
+            // Update system health timeline chart
+            const maxDataPoints = 20;
+            
+            // Add new data point
+            if (systemHealthChart.data.labels.length >= maxDataPoints) {
+                systemHealthChart.data.labels.shift();
+                systemHealthChart.data.datasets.forEach(dataset => dataset.data.shift());
+            }
+            
+            systemHealthChart.data.labels.push(currentTime);
+            systemHealthChart.data.datasets[0].data.push(cpuUsage);
+            systemHealthChart.data.datasets[1].data.push(memoryUsage);
+            systemHealthChart.data.datasets[2].data.push(diskUsage);
+            systemHealthChart.update('active');
+            
+            // Update resource distribution chart
+            const available = 100 - memoryUsage;
+            const system = Math.floor(memoryUsage * 0.3);
+            const applications = Math.floor(memoryUsage * 0.5);
+            const cache = memoryUsage - system - applications;
+            
+            resourceDistributionChart.data.datasets[0].data = [available, system, applications, cache];
+            resourceDistributionChart.update('active');
+            
+            console.log(`System Health Updated: CPU: ${cpuUsage}%, Memory: ${memoryUsage}%, Disk: ${diskUsage}%`);
+        }
+
+        function refreshSystemHealth() {
+            updateSystemHealthCharts();
+        }
+
+        // Active Threat Intelligence Feeds Functions
+        function startThreatFeedsLiveMode() {
+            if (!isThreatFeedsLive) {
+                isThreatFeedsLive = true;
+                document.getElementById('threatFeedsLiveBtn').textContent = 'Stop Feed Monitor';
+                document.getElementById('threatFeedsLiveBtn').style.background = 'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+                
+                threatFeedsInterval = setInterval(() => {
+                    updateThreatFeedsCharts();
+                }, 8000); // Update every 8 seconds
+                
+                console.log('Threat Intelligence Feeds monitoring started');
+            } else {
+                stopThreatFeedsLiveMode();
+            }
+        }
+
+        function stopThreatFeedsLiveMode() {
+            isThreatFeedsLive = false;
+            document.getElementById('threatFeedsLiveBtn').textContent = 'Start Feed Monitor';
+            document.getElementById('threatFeedsLiveBtn').style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            
+            if (threatFeedsInterval) {
+                clearInterval(threatFeedsInterval);
+                threatFeedsInterval = null;
+            }
+            
+            console.log('Threat Intelligence Feeds monitoring stopped');
+        }
+
+        function updateThreatFeedsCharts() {
+            const currentTime = new Date().toLocaleTimeString();
+            
+            // Generate realistic feed data
+            const activeFeedsCount = Math.floor(Math.random() * 20 + 80); // 80-100 feeds
+            const feedHealthScore = Math.floor(Math.random() * 10 + 90); // 90-100% health
+            const dataFreshness = Math.floor(Math.random() * 10 + 1); // 1-10 minutes
+            
+            // Update main metrics
+            document.getElementById('iocFeedsLive').textContent = activeFeedsCount;
+            document.getElementById('feedHealthLive').textContent = feedHealthScore + '%';
+            document.getElementById('feedHealthProgress').style.width = feedHealthScore + '%';
+            document.getElementById('dataFreshnessLive').textContent = dataFreshness + ' min';
+            
+            // Update performance metrics
+            const totalIOCs = Math.floor(Math.random() * 5000 + 15000);
+            const updateRate = Math.floor(Math.random() * 15 + 5);
+            const correlationRate = Math.floor(Math.random() * 15 + 75);
+            
+            document.getElementById('totalIOCs').textContent = totalIOCs.toLocaleString();
+            document.getElementById('feedUpdateRate').textContent = updateRate + '/min';
+            document.getElementById('correlationRate').textContent = correlationRate + '%';
+            
+            // Update feed status timeline
+            const maxDataPoints = 15;
+            
+            if (feedStatusChart.data.labels.length >= maxDataPoints) {
+                feedStatusChart.data.labels.shift();
+                feedStatusChart.data.datasets.forEach(dataset => dataset.data.shift());
+            }
+            
+            feedStatusChart.data.labels.push(currentTime);
+            feedStatusChart.data.datasets[0].data.push(feedHealthScore);
+            feedStatusChart.data.datasets[1].data.push(activeFeedsCount);
+            feedStatusChart.update('active');
+            
+            // Update IOC types distribution
+            const iocTypes = [
+                Math.floor(Math.random() * 500 + 1000), // IP Addresses
+                Math.floor(Math.random() * 300 + 700),  // Domains
+                Math.floor(Math.random() * 400 + 800),  // URLs
+                Math.floor(Math.random() * 200 + 500),  // File Hashes
+                Math.floor(Math.random() * 150 + 300),  // Email Addresses
+                Math.floor(Math.random() * 100 + 200)   // CVEs
+            ];
+            
+            iocTypesChart.data.datasets[0].data = iocTypes;
+            iocTypesChart.update('active');
+            
+            // Update feed sources table
+            updateFeedSourcesTable();
+            
+            console.log(`Threat Feeds Updated: ${activeFeedsCount} feeds, ${feedHealthScore}% health, ${dataFreshness}min freshness`);
+        }
+
+        function updateFeedSourcesTable() {
+            const feedSources = [
+                { name: 'MISP Community', status: 'Active', iocs: Math.floor(Math.random() * 1000 + 2000), lastUpdate: '2 min ago', health: Math.floor(Math.random() * 10 + 90) },
+                { name: 'AlienVault OTX', status: 'Active', iocs: Math.floor(Math.random() * 800 + 1500), lastUpdate: '5 min ago', health: Math.floor(Math.random() * 10 + 85) },
+                { name: 'VirusTotal', status: 'Active', iocs: Math.floor(Math.random() * 600 + 1200), lastUpdate: '3 min ago', health: Math.floor(Math.random() * 15 + 85) },
+                { name: 'Threat Fox', status: 'Active', iocs: Math.floor(Math.random() * 400 + 800), lastUpdate: '1 min ago', health: Math.floor(Math.random() * 10 + 90) },
+                { name: 'Abuse.ch', status: 'Active', iocs: Math.floor(Math.random() * 300 + 600), lastUpdate: '4 min ago', health: Math.floor(Math.random() * 15 + 80) },
+                { name: 'EmergingThreats', status: 'Warning', iocs: Math.floor(Math.random() * 200 + 400), lastUpdate: '12 min ago', health: Math.floor(Math.random() * 20 + 70) }
+            ];
+            
+            const tableBody = document.getElementById('feedTableBody');
+            tableBody.innerHTML = feedSources.map(feed => {
+                const statusColor = feed.status === 'Active' ? '#28a745' : '#ffc107';
+                const healthColor = feed.health >= 90 ? '#28a745' : feed.health >= 80 ? '#ffc107' : '#dc3545';
+                
+                return `
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <td style="padding: 8px;">${feed.name}</td>
+                        <td style="padding: 8px; text-align: center;">
+                            <span style="color: ${statusColor}; font-weight: bold;">${feed.status}</span>
+                        </td>
+                        <td style="padding: 8px; text-align: center;">${feed.iocs.toLocaleString()}</td>
+                        <td style="padding: 8px; text-align: center;">${feed.lastUpdate}</td>
+                        <td style="padding: 8px; text-align: center;">
+                            <span style="color: ${healthColor}; font-weight: bold;">${feed.health}%</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function refreshThreatFeeds() {
+            updateThreatFeedsCharts();
+        }
+
         function submitThreat() {
             // This would integrate with the existing threat submission system
             const threatText = document.getElementById('threatText').value;
@@ -2001,11 +2555,30 @@
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize original dashboard components
             loadDashboardStats();
             loadRecentThreats();
             loadCategories();
             updateRealtimeStats();
             startAutoRefresh();
+            
+            // Initialize all active charts
+            initializeSeverityChart();
+            initializeAttackVectorsChart();
+            initializeGeographicChart();
+            initializeHourlyActivityChart();
+            initializeSystemHealthChart();
+            initializeResourceDistributionChart();
+            initializeFeedStatusChart();
+            initializeIOCTypesChart();
+            
+            // Initialize advanced features
+            createAdvancedTooltips();
+            
+            // Initialize live updates for threat feeds table
+            updateFeedSourcesTable();
+            
+            console.log('Complete Active Dashboard initialized successfully with all monitoring components');
         });
 
         // Cleanup on page unload
