@@ -230,6 +230,34 @@ Or run the example script:
 python examples/api_server.py
 ```
 
+### Dashboard
+
+```python
+from src.dashboard.dashboard import ThreatDashboard
+from src.semantic_analysis.semantic_analyzer import ThreatSemanticAnalyzer
+from src.realtime.detector import RealTimeThreatDetector
+
+# Initialize
+analyzer = ThreatSemanticAnalyzer()
+detector = RealTimeThreatDetector(semantic_analyzer=analyzer)
+detector.start()
+
+dashboard = ThreatDashboard(threat_detector=detector, semantic_analyzer=analyzer)
+
+# Run dashboard
+dashboard.run(host='0.0.0.0', port=5001)
+```
+
+Or run the example script:
+```bash
+python examples/dashboard_example.py
+```
+
+Or use the main entry point:
+```bash
+python main.py dashboard --host 0.0.0.0 --port 5001
+```
+
 ## API Endpoints
 
 ### Health Check
@@ -270,6 +298,50 @@ GET /api/statistics
 GET /api/threats/search?q=keyword&category=malware
 ```
 
+## Dashboard Endpoints
+
+### Main Page
+```
+GET /
+```
+
+### Dashboard Statistics
+```
+GET /api/dashboard/stats
+```
+Returns overall statistics including total threats, critical threats, threats today, detection rate, and top category.
+
+### Recent Threats
+```
+GET /api/dashboard/threats/recent?limit=10
+```
+
+### Threat Timeline
+```
+GET /api/dashboard/threats/timeline?hours=24
+```
+Returns threat counts grouped by hour for the specified time period.
+
+### Threats by Category
+```
+GET /api/dashboard/threats/categories
+```
+
+### Threats by Severity
+```
+GET /api/dashboard/threats/severity
+```
+
+### Geographic Distribution
+```
+GET /api/dashboard/threats/geo
+```
+
+### Dashboard Health Check
+```
+GET /api/dashboard/health
+```
+
 ## Examples
 
 Run the included examples to see the framework in action:
@@ -283,6 +355,9 @@ python examples/realtime_detection.py
 
 # API server example
 python examples/api_server.py
+
+# Dashboard example
+python examples/dashboard_example.py
 
 # Comprehensive integration (demonstrates all advanced features together)
 python examples/comprehensive_integration_example.py
