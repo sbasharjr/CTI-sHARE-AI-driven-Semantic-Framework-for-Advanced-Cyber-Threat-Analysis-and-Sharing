@@ -6,6 +6,11 @@
     <title>CTI-sHARE Threat Intelligence Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    
+    <!-- Push Notifications API Support -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -202,10 +207,567 @@
             .chart-container { height: 300px; }
             .chart-header { flex-direction: column; align-items: flex-start; gap: 10px; }
         }
+
+        /* ===== ALERT SYSTEM & PUSH NOTIFICATIONS STYLES ===== */
+        
+        /* Alert Container */
+        .alert-system {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            width: 350px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Individual Alert Styles */
+        .alert {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-left: 5px solid;
+            animation: slideInRight 0.5s ease-out;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .alert:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Alert Severity Types */
+        .alert-critical {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(255, 255, 255, 0.98) 100%);
+        }
+
+        .alert-high {
+            border-left-color: #fd7e14;
+            background: linear-gradient(135deg, rgba(253, 126, 20, 0.1) 0%, rgba(255, 255, 255, 0.98) 100%);
+        }
+
+        .alert-medium {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 255, 255, 0.98) 100%);
+        }
+
+        .alert-low {
+            border-left-color: #17a2b8;
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.1) 0%, rgba(255, 255, 255, 0.98) 100%);
+        }
+
+        .alert-info {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(255, 255, 255, 0.98) 100%);
+        }
+
+        /* Alert Header */
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .alert-time {
+            font-size: 0.8em;
+            color: #666;
+            opacity: 0.8;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .alert-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        /* Alert Content */
+        .alert-message {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            color: #555;
+        }
+
+        .alert-details {
+            font-size: 0.9em;
+            color: #777;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .alert-source {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .alert-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+
+        /* Push Notification Controls */
+        .notification-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10001;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+            min-width: 250px;
+        }
+
+        .notification-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .notification-toggle {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .notification-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .notification-toggle.disabled {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        /* Alert Statistics */
+        .alert-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .alert-stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .alert-stat-number {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #667eea;
+        }
+
+        .alert-stat-label {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        /* Animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .alert.removing {
+            animation: fadeOut 0.3s ease-in;
+        }
+
+        /* Alert Sound Controls */
+        .sound-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .sound-toggle {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+        }
+
+        .sound-toggle.enabled {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .alert-system {
+                width: 90%;
+                right: 5%;
+                left: 5%;
+            }
+            
+            .notification-controls {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+            }
+        }
+        
+        /* Social Sharing Styles */
+        .social-share-panel {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-share-panel.minimized {
+            width: 50px;
+            padding: 10px;
+        }
+        
+        .social-share-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        
+        .social-share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .share-twitter { background: linear-gradient(135deg, #1da1f2 0%, #0e71c8 100%); }
+        .share-linkedin { background: linear-gradient(135deg, #0077b5 0%, #005885 100%); }
+        .share-facebook { background: linear-gradient(135deg, #4267b2 0%, #365899 100%); }
+        .share-reddit { background: linear-gradient(135deg, #ff4500 0%, #cc3700 100%); }
+        .share-copy { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .share-email { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
+        
+        .social-toggle {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+            margin-bottom: 10px;
+        }
+        
+        /* Live Information Display Styles */
+        .live-info-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .live-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .live-metric-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .live-metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .live-metric-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        
+        .live-status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-active { background: #28a745; }
+        .status-warning { background: #ffc107; }
+        .status-critical { background: #dc3545; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .chart-social-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-share-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .chart-share-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        /* Live Information Typography */
+        .live-info-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .live-update-time {
+            font-size: 11px;
+            color: #6c757d;
+            margin-left: auto;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .social-share-panel {
+                right: 10px;
+                top: auto;
+                bottom: 20px;
+                transform: none;
+                flex-direction: row;
+                width: calc(100% - 20px);
+                overflow-x: auto;
+            }
+            
+            .live-metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- ===== ALERT SYSTEM & PUSH NOTIFICATIONS ===== -->
+    
+    <!-- Alert Container -->
+    <div id="alertSystem" class="alert-system"></div>
+    
+    <!-- Push Notification Controls -->
+    <div id="notificationControls" class="notification-controls">
+        <div class="notification-status">
+            <span id="notificationIcon">🔔</span>
+            <span id="notificationStatusText">Push Notifications: Disabled</span>
+        </div>
+        <button id="notificationToggle" class="notification-toggle" onclick="togglePushNotifications()">
+            Enable Push Notifications
+        </button>
+        <div class="sound-controls">
+            <span>Alert Sound:</span>
+            <button id="soundToggle" class="sound-toggle" onclick="toggleAlertSound()">
+                🔇 Disabled
+            </button>
+        </div>
+        <div class="alert-stats">
+            <div class="alert-stat">
+                <div id="totalAlerts" class="alert-stat-number">0</div>
+                <div class="alert-stat-label">Total Alerts</div>
+            </div>
+            <div class="alert-stat">
+                <div id="criticalAlerts" class="alert-stat-number">0</div>
+                <div class="alert-stat-label">Critical</div>
+            </div>
+            <div class="alert-stat">
+                <div id="activeAlerts" class="alert-stat-number">0</div>
+                <div class="alert-stat-label">Active</div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
+        <!-- Panel Toggle Buttons -->
+        <div class="panel-toggle-container">
+            <button id="socialToggleBtn" class="panel-toggle-btn social-toggle-btn" onclick="toggleSocialPanel()" title="Toggle Social Sharing">
+                📤
+            </button>
+            <button id="notificationsToggleBtn" class="panel-toggle-btn notifications-toggle-btn" onclick="toggleNotificationsPanel()" title="Toggle Push Notifications">
+                🔔
+            </button>
+        </div>
+
+        <!-- Push Notifications Panel -->
+        <div id="pushNotificationsPanel" class="push-notifications-panel">
+            <div class="panel-header">
+                <span class="panel-title">🔔 Push Notifications</span>
+                <div class="panel-controls">
+                    <button class="panel-control-btn minimize-btn" onclick="minimizeNotificationsPanel()" title="Minimize">−</button>
+                    <button class="panel-control-btn hide-btn" onclick="hideNotificationsPanel()" title="Hide">×</button>
+                </div>
+            </div>
+            
+            <div class="notification-settings">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 10px;">
+                    <input type="checkbox" id="enableNotifications" checked onchange="togglePushNotifications()">
+                    Enable Push Notifications
+                </label>
+            </div>
+            
+            <div class="notification-history">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 13px; font-weight: bold;">📋 Notification History</span>
+                    <span id="notificationCount" style="font-size: 11px; color: #6c757d;">0 notifications</span>
+                </div>
+                
+                <div id="notificationHistoryContainer">
+                    <div class="empty-notifications">
+                        No notifications yet. Monitoring will start when charts are active.
+                    </div>
+                </div>
+                
+                <button class="clear-history-btn" onclick="clearNotificationHistory()">
+                    🗑️ Clear History
+                </button>
+            </div>
+        </div>
+
+        <!-- Social Sharing Panel -->
+        <div id="socialSharePanel" class="social-share-panel">
+            <div class="panel-header">
+                <span class="panel-title">📤 Social Sharing</span>
+                <div class="panel-controls">
+                    <button class="panel-control-btn minimize-btn" onclick="minimizeSocialPanel()" title="Minimize">−</button>
+                    <button class="panel-control-btn hide-btn" onclick="hideSocialPanel()" title="Hide">×</button>
+                </div>
+            </div>
+            
+            <div id="socialShareButtons" class="social-share-buttons">
+                <button class="social-share-btn share-twitter" onclick="shareToTwitter()">
+                    🐦 Twitter
+                </button>
+                <button class="social-share-btn share-linkedin" onclick="shareToLinkedIn()">
+                    💼 LinkedIn
+                </button>
+                <button class="social-share-btn share-facebook" onclick="shareToFacebook()">
+                    📘 Facebook
+                </button>
+                <button class="social-share-btn share-reddit" onclick="shareToReddit()">
+                    🔴 Reddit
+                </button>
+                <button class="social-share-btn share-copy" onclick="copyShareLink()">
+                    📋 Copy Link
+                </button>
+                <button class="social-share-btn share-email" onclick="shareViaEmail()">
+                    ✉️ Email
+                </button>
+            </div>
+        </div>
+
         <div class="header">
             <h1>🛡️ CTI-sHARE Threat Intelligence Dashboard</h1>
             <p>AI-driven Semantic Framework for Advanced Cyber Threat Analysis and Sharing</p>
@@ -458,10 +1020,45 @@
                     <div class="chart-header">
                         <h3>🎯 Attack Vectors (Live)</h3>
                         <div class="chart-controls">
-                            <button onclick="startAttackVectorsLiveMode()" id="attackVectorsLiveBtn">Start Live Mode</button>
+                            <button onclick="startAttackVectorsLive()" id="attackVectorsLiveBtn" 
+                                    style="padding: 8px 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                Start Attack Monitor</button>
                             <button onclick="exportChart('attack_vectors')">Export</button>
                         </div>
                     </div>
+                    
+                    <!-- Live Information Display for Attack Vectors -->
+                    <div class="live-info-container">
+                        <div class="live-info-title">
+                            <span class="live-status-indicator status-active"></span>
+                            Attack Vector Live Intelligence
+                            <span class="live-update-time" id="attackVectorsUpdateTime">Last updated: Never</span>
+                        </div>
+                        <div class="live-metrics-grid">
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="totalActiveThreats">0</div>
+                                <div class="live-metric-label">Active Threats</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="criticalThreats">0</div>
+                                <div class="live-metric-label">Critical</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="topAttackVector">N/A</div>
+                                <div class="live-metric-label">Top Vector</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="threatTrend">📈</div>
+                                <div class="live-metric-label">Trend</div>
+                            </div>
+                        </div>
+                        <div class="chart-social-controls">
+                            <button class="chart-share-btn" onclick="shareChart('attack-vectors')">📤 Share Threats</button>
+                            <button class="chart-share-btn" onclick="exportChartData('attack-vectors')">💾 Export Data</button>
+                            <button class="chart-share-btn" onclick="generateThreatReport()">📊 Threat Report</button>
+                        </div>
+                    </div>
+                    
                     <div class="chart-container" style="height: 300px;">
                         <canvas id="attackVectorsChart"></canvas>
                     </div>
@@ -470,12 +1067,47 @@
                     <div class="chart-header">
                         <h3>🌍 Geographic Distribution (Live)</h3>
                         <div class="chart-controls">
-                            <button onclick="startGeographicLiveMode()" id="geographicLiveBtn">Start Live Mode</button>
+                            <button onclick="startGeographicDistributionLive()" id="geographicLiveBtn"
+                                    style="padding: 8px 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                Start Geographic Monitor</button>
                             <button onclick="exportChart('geographic')">Export</button>
                         </div>
                     </div>
+                    
+                    <!-- Live Information Display for Geographic Distribution -->
+                    <div class="live-info-container">
+                        <div class="live-info-title">
+                            <span class="live-status-indicator status-active"></span>
+                            Global Threat Distribution Live
+                            <span class="live-update-time" id="geographicUpdateTime">Last updated: Never</span>
+                        </div>
+                        <div class="live-metrics-grid">
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="totalGlobalThreats">0</div>
+                                <div class="live-metric-label">Global Threats</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="topThreatCountry">N/A</div>
+                                <div class="live-metric-label">Top Country</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="activeRegions">0</div>
+                                <div class="live-metric-label">Active Regions</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="globalThreatLevel">Low</div>
+                                <div class="live-metric-label">Threat Level</div>
+                            </div>
+                        </div>
+                        <div class="chart-social-controls">
+                            <button class="chart-share-btn" onclick="shareChart('geographic-threats')">📤 Share Global</button>
+                            <button class="chart-share-btn" onclick="exportChartData('geographic-threats')">💾 Export Data</button>
+                            <button class="chart-share-btn" onclick="generateGeoReport()">📊 Geo Report</button>
+                        </div>
+                    </div>
+                    
                     <div class="chart-container" style="height: 300px;">
-                        <canvas id="geoDistributionChart"></canvas>
+                        <canvas id="geographicChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -484,13 +1116,48 @@
                 <div class="chart-header">
                     <h3>⏰ Hourly Activity Pattern (Live)</h3>
                     <div class="chart-controls">
-                        <button onclick="startHourlyActivityLiveMode()" id="hourlyActivityLiveBtn">Start Live Mode</button>
+                        <button onclick="startHourlyActivityPatternLive()" id="hourlyActivityLiveBtn"
+                                style="padding: 8px 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            Start Activity Monitor</button>
                         <button onclick="exportChart('hourly')">Export</button>
-                        <button onclick="resetAllCharts()">Reset All</button>
-                        <button onclick="pauseAllLiveModes()">Pause All</button>
-                        <button onclick="startAllLiveModes()">Start All</button>
+                        <button onclick="refreshAllActiveCharts()" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px;">Refresh All</button>
+                        <button onclick="stopAllActiveCharts()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px;">Stop All</button>
+                        <button onclick="startAllActiveCharts()" id="startAllChartsBtn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px;">Start All Active Charts</button>
                     </div>
                 </div>
+                
+                <!-- Live Information Display for Hourly Activity Pattern -->
+                <div class="live-info-container">
+                    <div class="live-info-title">
+                        <span class="live-status-indicator status-active"></span>
+                        24-Hour Activity Pattern Live Analysis
+                        <span class="live-update-time" id="hourlyActivityUpdateTime">Last updated: Never</span>
+                    </div>
+                    <div class="live-metrics-grid">
+                        <div class="live-metric-card">
+                            <div class="live-metric-value" id="currentHourActivity">0</div>
+                            <div class="live-metric-label">Current Hour</div>
+                        </div>
+                        <div class="live-metric-card">
+                            <div class="live-metric-value" id="peakActivityHour">N/A</div>
+                            <div class="live-metric-label">Peak Hour</div>
+                        </div>
+                        <div class="live-metric-card">
+                            <div class="live-metric-value" id="averageActivity">0</div>
+                            <div class="live-metric-label">Daily Average</div>
+                        </div>
+                        <div class="live-metric-card">
+                            <div class="live-metric-value" id="activityTrend">📊</div>
+                            <div class="live-metric-label">Trend</div>
+                        </div>
+                    </div>
+                    <div class="chart-social-controls">
+                        <button class="chart-share-btn" onclick="shareChart('hourly-activity')">📤 Share Activity</button>
+                        <button class="chart-share-btn" onclick="exportChartData('hourly-activity')">💾 Export Data</button>
+                        <button class="chart-share-btn" onclick="generateActivityReport()">📊 Activity Report</button>
+                    </div>
+                </div>
+                
                 <div class="chart-container">
                     <canvas id="hourlyActivityChart"></canvas>
                 </div>
@@ -541,13 +1208,91 @@
             
             <div class="grid-2">
                 <div>
-                    <h3>System Performance Timeline</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>🖥️ System Performance Timeline</h3>
+                        <button id="systemPerformanceLiveBtn" class="btn-active" onclick="startSystemPerformanceTimeline()" 
+                                style="padding: 8px 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            Start Performance Monitor
+                        </button>
+                    </div>
+                    
+                    <!-- Live Information Display for System Performance -->
+                    <div class="live-info-container">
+                        <div class="live-info-title">
+                            <span class="live-status-indicator status-active"></span>
+                            System Performance Live Metrics
+                            <span class="live-update-time" id="systemPerformanceUpdateTime">Last updated: Never</span>
+                        </div>
+                        <div class="live-metrics-grid">
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="liveCPUUsage">0%</div>
+                                <div class="live-metric-label">CPU Usage</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="liveMemoryUsage">0%</div>
+                                <div class="live-metric-label">Memory Usage</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="liveDiskUsage">0%</div>
+                                <div class="live-metric-label">Disk Usage</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="systemHealthScore">100%</div>
+                                <div class="live-metric-label">Health Score</div>
+                            </div>
+                        </div>
+                        <div class="chart-social-controls">
+                            <button class="chart-share-btn" onclick="shareChart('system-performance')">📤 Share Performance</button>
+                            <button class="chart-share-btn" onclick="exportChartData('system-performance')">💾 Export Data</button>
+                            <button class="chart-share-btn" onclick="generatePerformanceReport()">📊 Generate Report</button>
+                        </div>
+                    </div>
+                    
                     <div class="chart-container" style="height: 250px;">
                         <canvas id="systemHealthChart"></canvas>
                     </div>
                 </div>
                 <div>
-                    <h3>Resource Distribution</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>💾 Resource Distribution</h3>
+                        <button id="resourceDistributionLiveBtn" class="btn-active" onclick="startResourceDistribution()" 
+                                style="padding: 8px 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            Start Resource Monitor
+                        </button>
+                    </div>
+                    
+                    <!-- Live Information Display for Resource Distribution -->
+                    <div class="live-info-container">
+                        <div class="live-info-title">
+                            <span class="live-status-indicator status-active"></span>
+                            Memory Resource Live Status
+                            <span class="live-update-time" id="resourceDistributionUpdateTime">Last updated: Never</span>
+                        </div>
+                        <div class="live-metrics-grid">
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="liveAvailableMemory">0%</div>
+                                <div class="live-metric-label">Available</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="liveSystemMemory">0%</div>
+                                <div class="live-metric-label">System</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="liveAppMemory">0%</div>
+                                <div class="live-metric-label">Applications</div>
+                            </div>
+                            <div class="live-metric-card">
+                                <div class="live-metric-value" id="liveCacheMemory">0%</div>
+                                <div class="live-metric-label">Cache</div>
+                            </div>
+                        </div>
+                        <div class="chart-social-controls">
+                            <button class="chart-share-btn" onclick="shareChart('resource-distribution')">📤 Share Resources</button>
+                            <button class="chart-share-btn" onclick="exportChartData('resource-distribution')">💾 Export Data</button>
+                            <button class="chart-share-btn" onclick="generateResourceReport()">📊 Memory Report</button>
+                        </div>
+                    </div>
+                    
                     <div class="chart-container" style="height: 250px;">
                         <canvas id="resourceDistributionChart"></canvas>
                     </div>
@@ -700,12 +1445,1020 @@
         let isAdvancedRealtimeActive = false;
         let isSystemHealthLive = false;
         let isThreatFeedsLive = false;
+        
+        // Social sharing variables
+        let socialPanelMinimized = false;
+        let socialPanelHidden = false;
+        let notificationsPanelMinimized = false;
+        let notificationsPanelHidden = false;
+        let pushNotificationsEnabled = true;
+        let notificationHistory = [];
+        let currentChartData = {};
+        
+        // Live information tracking
+        let liveInfoData = {
+            systemPerformance: { cpu: 0, memory: 0, disk: 0, health: 100 },
+            resourceDistribution: { available: 60, system: 15, apps: 20, cache: 5 },
+            attackVectors: { total: 0, critical: 0, topVector: 'N/A', trend: '📈' },
+            geographic: { total: 0, topCountry: 'N/A', regions: 0, level: 'Low' },
+            hourlyActivity: { current: 0, peak: 'N/A', average: 0, trend: '📊' }
+        };
+
+        // ===== PANEL MANAGEMENT FUNCTIONS =====
+        
+        function toggleSocialPanel() {
+            const panel = document.getElementById('socialSharePanel');
+            const toggleBtn = document.getElementById('socialToggleBtn');
+            
+            if (socialPanelHidden) {
+                showSocialPanel();
+            } else {
+                socialPanelMinimized = !socialPanelMinimized;
+                if (socialPanelMinimized) {
+                    panel.classList.add('minimized');
+                    toggleBtn.style.background = 'linear-gradient(135deg, #ffc107 0%, #e0a800 100%)';
+                } else {
+                    panel.classList.remove('minimized');
+                    toggleBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                }
+            }
+        }
+        
+        function hideSocialPanel() {
+            const panel = document.getElementById('socialSharePanel');
+            const toggleBtn = document.getElementById('socialToggleBtn');
+            
+            panel.classList.add('hidden');
+            socialPanelHidden = true;
+            socialPanelMinimized = false;
+            
+            toggleBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+            toggleBtn.classList.remove('active');
+            
+            addNotification('📤 Social Sharing Panel Hidden', 'Social sharing panel has been hidden. Click the toggle button to show it again.', 'info');
+        }
+        
+        function showSocialPanel() {
+            const panel = document.getElementById('socialSharePanel');
+            const toggleBtn = document.getElementById('socialToggleBtn');
+            
+            panel.classList.remove('hidden');
+            socialPanelHidden = false;
+            
+            toggleBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            toggleBtn.classList.add('active');
+        }
+        
+        function minimizeSocialPanel() {
+            const panel = document.getElementById('socialSharePanel');
+            
+            socialPanelMinimized = !socialPanelMinimized;
+            if (socialPanelMinimized) {
+                panel.classList.add('minimized');
+            } else {
+                panel.classList.remove('minimized');
+            }
+        }
+        
+        function toggleNotificationsPanel() {
+            const panel = document.getElementById('pushNotificationsPanel');
+            const toggleBtn = document.getElementById('notificationsToggleBtn');
+            
+            if (notificationsPanelHidden) {
+                showNotificationsPanel();
+            } else {
+                notificationsPanelMinimized = !notificationsPanelMinimized;
+                if (notificationsPanelMinimized) {
+                    panel.classList.add('minimized');
+                    toggleBtn.style.background = 'linear-gradient(135deg, #ffc107 0%, #e0a800 100%)';
+                } else {
+                    panel.classList.remove('minimized');
+                    toggleBtn.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                }
+            }
+        }
+        
+        function hideNotificationsPanel() {
+            const panel = document.getElementById('pushNotificationsPanel');
+            const toggleBtn = document.getElementById('notificationsToggleBtn');
+            
+            panel.classList.add('hidden');
+            notificationsPanelHidden = true;
+            notificationsPanelMinimized = false;
+            
+            toggleBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+            toggleBtn.classList.remove('active');
+        }
+        
+        function showNotificationsPanel() {
+            const panel = document.getElementById('pushNotificationsPanel');
+            const toggleBtn = document.getElementById('notificationsToggleBtn');
+            
+            panel.classList.remove('hidden');
+            notificationsPanelHidden = false;
+            
+            toggleBtn.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+            toggleBtn.classList.add('active');
+        }
+        
+        function minimizeNotificationsPanel() {
+            const panel = document.getElementById('pushNotificationsPanel');
+            
+            notificationsPanelMinimized = !notificationsPanelMinimized;
+            if (notificationsPanelMinimized) {
+                panel.classList.add('minimized');
+            } else {
+                panel.classList.remove('minimized');
+            }
+        }
+        
+        function togglePushNotifications() {
+            const checkbox = document.getElementById('enableNotifications');
+            pushNotificationsEnabled = checkbox.checked;
+            
+            if (pushNotificationsEnabled) {
+                addNotification('🔔 Push Notifications Enabled', 'You will now receive real-time notifications for threats and system alerts.', 'success');
+                requestNotificationPermission();
+            } else {
+                addNotification('🔕 Push Notifications Disabled', 'Push notifications have been turned off. You can re-enable them anytime.', 'warning');
+            }
+        }
+        
+        // ===== NOTIFICATION HISTORY FUNCTIONS =====
+        
+        function addNotification(title, message, type = 'info', actions = []) {
+            const notification = {
+                id: Date.now(),
+                title: title,
+                message: message,
+                type: type,
+                timestamp: new Date(),
+                actions: actions,
+                read: false
+            };
+            
+            notificationHistory.unshift(notification);
+            
+            // Limit history to 50 notifications
+            if (notificationHistory.length > 50) {
+                notificationHistory = notificationHistory.slice(0, 50);
+            }
+            
+            updateNotificationDisplay();
+            
+            // Show browser notification if enabled
+            if (pushNotificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, {
+                    body: message,
+                    icon: '/static/favicon.ico',
+                    tag: 'cti-share-' + type
+                });
+            }
+        }
+        
+        function updateNotificationDisplay() {
+            const container = document.getElementById('notificationHistoryContainer');
+            const countElement = document.getElementById('notificationCount');
+            
+            countElement.textContent = `${notificationHistory.length} notification${notificationHistory.length !== 1 ? 's' : ''}`;
+            
+            if (notificationHistory.length === 0) {
+                container.innerHTML = '<div class="empty-notifications">No notifications yet. Monitoring will start when charts are active.</div>';
+                return;
+            }
+            
+            container.innerHTML = notificationHistory.map(notification => `
+                <div class="notification-item ${notification.type}" data-id="${notification.id}">
+                    <div class="notification-header">
+                        <span class="notification-title">${notification.title}</span>
+                        <span class="notification-time">${formatNotificationTime(notification.timestamp)}</span>
+                    </div>
+                    <div class="notification-message">${notification.message}</div>
+                    ${notification.actions.length > 0 ? `
+                        <div class="notification-actions">
+                            ${notification.actions.map(action => `
+                                <button class="notification-action-btn ${action.type || ''}" onclick="${action.onclick}">
+                                    ${action.text}
+                                </button>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="notification-actions" style="margin-top: 5px;">
+                        <button class="notification-action-btn" onclick="removeNotification(${notification.id})">
+                            🗑️ Remove
+                        </button>
+                        <button class="notification-action-btn primary" onclick="shareNotification(${notification.id})">
+                            📤 Share
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function formatNotificationTime(timestamp) {
+            const now = new Date();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
+        
+        function removeNotification(id) {
+            notificationHistory = notificationHistory.filter(n => n.id !== id);
+            updateNotificationDisplay();
+        }
+        
+        function clearNotificationHistory() {
+            notificationHistory = [];
+            updateNotificationDisplay();
+            showNotification('🗑️ Notification history cleared', 'success');
+        }
+        
+        function shareNotification(id) {
+            const notification = notificationHistory.find(n => n.id === id);
+            if (notification) {
+                const shareText = `🛡️ CTI-sHARE Alert: ${notification.title}\n\n${notification.message}\n\nTimestamp: ${notification.timestamp.toLocaleString()}\n\nDashboard: ${window.location.href}`;
+                copyToClipboard(shareText);
+                showNotification('📋 Notification copied to clipboard!', 'success');
+            }
+        }
+        
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        addNotification('✅ Browser Notifications Enabled', 'You will now receive desktop notifications for critical alerts.', 'success');
+                    } else {
+                        addNotification('❌ Browser Notifications Denied', 'Desktop notifications are disabled. You can still see alerts in the dashboard.', 'warning');
+                    }
+                });
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                return true;
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return true;
+            });
+        }
+
+        // ===== SOCIAL SHARING FUNCTIONS =====
+        
+        function toggleSocialPanel() {
+            const panel = document.getElementById('socialSharePanel');
+            const buttons = document.getElementById('socialShareButtons');
+            
+            socialPanelMinimized = !socialPanelMinimized;
+            
+            if (socialPanelMinimized) {
+                panel.classList.add('minimized');
+                buttons.style.display = 'none';
+            } else {
+                panel.classList.remove('minimized');
+                buttons.style.display = 'flex';
+            }
+        }
+        
+        function generateShareText(chartType = 'dashboard') {
+            const timestamp = new Date().toLocaleString();
+            
+            switch(chartType) {
+                case 'system-performance':
+                    return `🖥️ CTI-sHARE System Performance: CPU ${liveInfoData.systemPerformance.cpu}%, Memory ${liveInfoData.systemPerformance.memory}%, Health Score ${liveInfoData.systemPerformance.health}% - Live monitoring at ${timestamp}`;
+                    
+                case 'resource-distribution':
+                    return `💾 CTI-sHARE Resource Status: ${liveInfoData.resourceDistribution.available}% Available Memory, ${liveInfoData.resourceDistribution.apps}% Applications - Real-time analysis at ${timestamp}`;
+                    
+                case 'attack-vectors':
+                    return `🎯 CTI-sHARE Threat Intelligence: ${liveInfoData.attackVectors.total} Active Threats, ${liveInfoData.attackVectors.critical} Critical, Top Vector: ${liveInfoData.attackVectors.topVector} - Live threat monitoring at ${timestamp}`;
+                    
+                case 'geographic-threats':
+                    return `🌍 CTI-sHARE Global Threats: ${liveInfoData.geographic.total} Global Threats, Top Source: ${liveInfoData.geographic.topCountry}, Threat Level: ${liveInfoData.geographic.level} - Global monitoring at ${timestamp}`;
+                    
+                case 'hourly-activity':
+                    return `⏰ CTI-sHARE Activity Pattern: Current Hour ${liveInfoData.hourlyActivity.current}, Peak Hour: ${liveInfoData.hourlyActivity.peak}, Daily Average: ${liveInfoData.hourlyActivity.average} - 24/7 monitoring at ${timestamp}`;
+                    
+                default:
+                    return `🛡️ CTI-sHARE Cyber Threat Intelligence Dashboard - Real-time threat monitoring and analysis system. Active monitoring across multiple threat vectors and global intelligence feeds. ${timestamp}`;
+            }
+        }
+        
+        function shareToTwitter(chartType = 'dashboard') {
+            const text = generateShareText(chartType);
+            const url = encodeURIComponent(window.location.href);
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}&hashtags=CyberSecurity,ThreatIntelligence,CTIsHARE`;
+            window.open(twitterUrl, '_blank', 'width=600,height=400');
+        }
+        
+        function shareToLinkedIn(chartType = 'dashboard') {
+            const text = generateShareText(chartType);
+            const url = encodeURIComponent(window.location.href);
+            const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${encodeURIComponent(text)}`;
+            window.open(linkedinUrl, '_blank', 'width=600,height=400');
+        }
+        
+        function shareToFacebook(chartType = 'dashboard') {
+            const url = encodeURIComponent(window.location.href);
+            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            window.open(facebookUrl, '_blank', 'width=600,height=400');
+        }
+        
+        function shareToReddit(chartType = 'dashboard') {
+            const text = generateShareText(chartType);
+            const url = encodeURIComponent(window.location.href);
+            const redditUrl = `https://reddit.com/submit?url=${url}&title=${encodeURIComponent(text)}`;
+            window.open(redditUrl, '_blank', 'width=600,height=400');
+        }
+        
+        function copyShareLink(chartType = 'dashboard') {
+            const text = generateShareText(chartType);
+            const fullText = `${text}\n\n${window.location.href}`;
+            
+            navigator.clipboard.writeText(fullText).then(() => {
+                // Show success notification
+                showNotification('📋 Link copied to clipboard!', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = fullText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('📋 Link copied to clipboard!', 'success');
+            });
+        }
+        
+        function shareViaEmail(chartType = 'dashboard') {
+            const text = generateShareText(chartType);
+            const subject = 'CTI-sHARE Threat Intelligence Dashboard';
+            const body = `${text}\n\nAccess the live dashboard at: ${window.location.href}`;
+            const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = emailUrl;
+        }
+        
+        function shareChart(chartType) {
+            // Quick share for specific chart
+            shareToTwitter(chartType);
+        }
+        
+        function exportChartData(chartType) {
+            const data = liveInfoData[chartType.replace('-', '')] || {};
+            const jsonData = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cti-share-${chartType}-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification(`💾 ${chartType} data exported successfully!`, 'success');
+        }
+        
+        // ===== LIVE INFORMATION UPDATE FUNCTIONS =====
+        
+        function updateLiveInfo(chartType, data) {
+            const timestamp = new Date().toLocaleTimeString();
+            
+            switch(chartType) {
+                case 'systemPerformance':
+                    liveInfoData.systemPerformance = data;
+                    document.getElementById('liveCPUUsage').textContent = data.cpu + '%';
+                    document.getElementById('liveMemoryUsage').textContent = data.memory + '%';
+                    document.getElementById('liveDiskUsage').textContent = data.disk + '%';
+                    document.getElementById('systemHealthScore').textContent = data.health + '%';
+                    document.getElementById('systemPerformanceUpdateTime').textContent = `Last updated: ${timestamp}`;
+                    break;
+                    
+                case 'resourceDistribution':
+                    liveInfoData.resourceDistribution = data;
+                    document.getElementById('liveAvailableMemory').textContent = data.available + '%';
+                    document.getElementById('liveSystemMemory').textContent = data.system + '%';
+                    document.getElementById('liveAppMemory').textContent = data.apps + '%';
+                    document.getElementById('liveCacheMemory').textContent = data.cache + '%';
+                    document.getElementById('resourceDistributionUpdateTime').textContent = `Last updated: ${timestamp}`;
+                    break;
+                    
+                case 'attackVectors':
+                    liveInfoData.attackVectors = data;
+                    document.getElementById('totalActiveThreats').textContent = data.total;
+                    document.getElementById('criticalThreats').textContent = data.critical;
+                    document.getElementById('topAttackVector').textContent = data.topVector;
+                    document.getElementById('threatTrend').textContent = data.trend;
+                    document.getElementById('attackVectorsUpdateTime').textContent = `Last updated: ${timestamp}`;
+                    break;
+                    
+                case 'geographic':
+                    liveInfoData.geographic = data;
+                    document.getElementById('totalGlobalThreats').textContent = data.total;
+                    document.getElementById('topThreatCountry').textContent = data.topCountry;
+                    document.getElementById('activeRegions').textContent = data.regions;
+                    document.getElementById('globalThreatLevel').textContent = data.level;
+                    document.getElementById('geographicUpdateTime').textContent = `Last updated: ${timestamp}`;
+                    break;
+                    
+                case 'hourlyActivity':
+                    liveInfoData.hourlyActivity = data;
+                    document.getElementById('currentHourActivity').textContent = data.current;
+                    document.getElementById('peakActivityHour').textContent = data.peak;
+                    document.getElementById('averageActivity').textContent = data.average;
+                    document.getElementById('activityTrend').textContent = data.trend;
+                    document.getElementById('hourlyActivityUpdateTime').textContent = `Last updated: ${timestamp}`;
+                    break;
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-weight: bold;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // Report generation functions
+        function generatePerformanceReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                systemPerformance: liveInfoData.systemPerformance,
+                summary: `System Health Report - CPU: ${liveInfoData.systemPerformance.cpu}%, Memory: ${liveInfoData.systemPerformance.memory}%, Disk: ${liveInfoData.systemPerformance.disk}%`
+            };
+            
+            const jsonData = JSON.stringify(report, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cti-share-performance-report-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('📊 Performance report generated!', 'success');
+        }
+        
+        function generateResourceReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                resourceDistribution: liveInfoData.resourceDistribution,
+                summary: `Memory Resource Report - Available: ${liveInfoData.resourceDistribution.available}%, Used: ${100 - liveInfoData.resourceDistribution.available}%`
+            };
+            exportReport(report, 'resource-report');
+        }
+        
+        function generateThreatReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                attackVectors: liveInfoData.attackVectors,
+                summary: `Threat Intelligence Report - ${liveInfoData.attackVectors.total} Active Threats, ${liveInfoData.attackVectors.critical} Critical`
+            };
+            exportReport(report, 'threat-report');
+        }
+        
+        function generateGeoReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                geographic: liveInfoData.geographic,
+                summary: `Global Threat Report - ${liveInfoData.geographic.total} Global Threats, Top Source: ${liveInfoData.geographic.topCountry}`
+            };
+            exportReport(report, 'geo-report');
+        }
+        
+        function generateActivityReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                hourlyActivity: liveInfoData.hourlyActivity,
+                summary: `Activity Pattern Report - Current: ${liveInfoData.hourlyActivity.current}, Peak: ${liveInfoData.hourlyActivity.peak}`
+            };
+            exportReport(report, 'activity-report');
+        }
+        
+        function exportReport(report, filename) {
+            const jsonData = JSON.stringify(report, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cti-share-${filename}-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification(`📊 ${filename} generated!`, 'success');
+        }
+
+        // ===== ALERT SYSTEM & PUSH NOTIFICATIONS =====
+        
+        // Alert system variables
+        let alertSystem = {
+            enabled: false,
+            soundEnabled: false,
+            notificationPermission: 'default',
+            totalAlerts: 0,
+            criticalAlerts: 0,
+            activeAlerts: 0,
+            maxAlerts: 10,
+            alertQueue: [],
+            alertInterval: null
+        };
+
+        // Alert severity levels
+        const ALERT_LEVELS = {
+            CRITICAL: { name: 'Critical', class: 'alert-critical', icon: '🚨', priority: 4 },
+            HIGH: { name: 'High', class: 'alert-high', icon: '⚠️', priority: 3 },
+            MEDIUM: { name: 'Medium', class: 'alert-medium', icon: '⚡', priority: 2 },
+            LOW: { name: 'Low', class: 'alert-low', icon: 'ℹ️', priority: 1 },
+            INFO: { name: 'Info', class: 'alert-info', icon: '💡', priority: 0 }
+        };
+
+        // Alert categories
+        const ALERT_CATEGORIES = {
+            THREAT_DETECTION: 'Threat Detection',
+            SYSTEM_HEALTH: 'System Health',
+            FEED_STATUS: 'Feed Status',
+            SECURITY_BREACH: 'Security Breach',
+            PERFORMANCE: 'Performance',
+            NETWORK: 'Network',
+            DATA_INTEGRITY: 'Data Integrity'
+        };
+
+        // Push Notification Functions
+        async function initializePushNotifications() {
+            // Check if browser supports notifications
+            if (!("Notification" in window)) {
+                console.warn("This browser does not support desktop notifications");
+                updateNotificationStatus("Browser not supported", false);
+                return false;
+            }
+
+            // Check current permission status
+            const permission = Notification.permission;
+            alertSystem.notificationPermission = permission;
+            
+            updateNotificationStatus(permission, permission === 'granted');
+            
+            if (permission === 'granted') {
+                alertSystem.enabled = true;
+                return true;
+            }
+            
+            return false;
+        }
+
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                alertSystem.notificationPermission = permission;
+                
+                if (permission === 'granted') {
+                    alertSystem.enabled = true;
+                    updateNotificationStatus("Enabled", true);
+                    console.log("✅ Push notifications enabled");
+                    
+                    // Show welcome notification
+                    showPushNotification(
+                        "CTI-sHARE Alert System",
+                        "Push notifications are now enabled. You'll receive real-time alerts for critical threats.",
+                        ALERT_LEVELS.INFO
+                    );
+                    
+                    return true;
+                } else {
+                    updateNotificationStatus("Permission denied", false);
+                    console.warn("❌ Push notification permission denied");
+                    return false;
+                }
+            } catch (error) {
+                console.error("Error requesting notification permission:", error);
+                updateNotificationStatus("Error", false);
+                return false;
+            }
+        }
+
+        function updateNotificationStatus(status, enabled) {
+            const statusText = document.getElementById('notificationStatusText');
+            const toggleButton = document.getElementById('notificationToggle');
+            const icon = document.getElementById('notificationIcon');
+            
+            if (statusText) {
+                statusText.textContent = `Push Notifications: ${status}`;
+            }
+            
+            if (toggleButton) {
+                if (enabled) {
+                    toggleButton.textContent = 'Disable Push Notifications';
+                    toggleButton.classList.remove('disabled');
+                } else {
+                    toggleButton.textContent = 'Enable Push Notifications';
+                    toggleButton.classList.add('disabled');
+                }
+            }
+            
+            if (icon) {
+                icon.textContent = enabled ? '🔔' : '🔕';
+            }
+        }
+
+        function showPushNotification(title, message, level) {
+            if (!alertSystem.enabled || alertSystem.notificationPermission !== 'granted') {
+                return;
+            }
+
+            try {
+                const notification = new Notification(title, {
+                    body: message,
+                    icon: '/static/favicon.ico',
+                    badge: '/static/badge.png',
+                    tag: 'cti-share-alert',
+                    requireInteraction: level.priority >= 3, // Require interaction for high/critical
+                    vibrate: level.priority >= 2 ? [200, 100, 200] : [100],
+                    timestamp: Date.now(),
+                    data: {
+                        level: level.name,
+                        category: 'CTI-sHARE',
+                        url: window.location.href
+                    }
+                });
+
+                // Auto-close after delay (except for critical alerts)
+                if (level.priority < 4) {
+                    setTimeout(() => {
+                        notification.close();
+                    }, 5000 + (level.priority * 2000));
+                }
+
+                // Handle notification click
+                notification.onclick = function() {
+                    window.focus();
+                    notification.close();
+                };
+
+                console.log(`🔔 Push notification sent: ${title}`);
+                
+            } catch (error) {
+                console.error("Error showing push notification:", error);
+            }
+        }
+
+        // Alert Creation and Management
+        function createAlert(title, message, level, category, details = null) {
+            const alertId = `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const timestamp = new Date();
+            
+            const alert = {
+                id: alertId,
+                title: title,
+                message: message,
+                level: level,
+                category: category,
+                details: details,
+                timestamp: timestamp,
+                active: true
+            };
+
+            // Add to queue and display
+            alertSystem.alertQueue.push(alert);
+            displayAlert(alert);
+            updateAlertStats();
+            
+            // Play sound if enabled
+            if (alertSystem.soundEnabled) {
+                playAlertSound(level.priority);
+            }
+
+            // Send push notification
+            showPushNotification(`${level.icon} ${title}`, message, level);
+            
+            // Auto-remove after delay (except critical)
+            if (level.priority < 4) {
+                setTimeout(() => {
+                    removeAlert(alertId);
+                }, 10000 + (level.priority * 5000));
+            }
+
+            console.log(`🚨 Alert created: [${level.name}] ${title}`);
+            return alertId;
+        }
+
+        function displayAlert(alert) {
+            const alertContainer = document.getElementById('alertSystem');
+            if (!alertContainer) return;
+
+            const alertElement = document.createElement('div');
+            alertElement.className = `alert ${alert.level.class}`;
+            alertElement.id = alert.id;
+            alertElement.onclick = () => removeAlert(alert.id);
+            
+            alertElement.innerHTML = `
+                <div class="alert-header">
+                    <span class="alert-icon">${alert.level.icon}</span>
+                    <span class="alert-title">${alert.title}</span>
+                    <span class="alert-time">${alert.timestamp.toLocaleTimeString()}</span>
+                    <button class="alert-close" onclick="event.stopPropagation(); removeAlert('${alert.id}')">&times;</button>
+                </div>
+                <div class="alert-message">${alert.message}</div>
+                ${alert.details ? `<div class="alert-details">${alert.details}</div>` : ''}
+                <div class="alert-source">
+                    <span>📡</span>
+                    <span>${alert.category}</span>
+                    <span>•</span>
+                    <span>${alert.level.name} Priority</span>
+                </div>
+            `;
+
+            // Insert at top of container
+            alertContainer.insertBefore(alertElement, alertContainer.firstChild);
+            
+            // Limit number of visible alerts
+            const alerts = alertContainer.querySelectorAll('.alert');
+            if (alerts.length > alertSystem.maxAlerts) {
+                const oldestAlert = alerts[alerts.length - 1];
+                removeAlert(oldestAlert.id);
+            }
+        }
+
+        function removeAlert(alertId) {
+            const alertElement = document.getElementById(alertId);
+            if (!alertElement) return;
+
+            alertElement.classList.add('removing');
+            
+            setTimeout(() => {
+                if (alertElement.parentNode) {
+                    alertElement.parentNode.removeChild(alertElement);
+                }
+                
+                // Remove from queue
+                alertSystem.alertQueue = alertSystem.alertQueue.filter(alert => alert.id !== alertId);
+                updateAlertStats();
+            }, 300);
+        }
+
+        function updateAlertStats() {
+            alertSystem.totalAlerts = alertSystem.alertQueue.length;
+            alertSystem.criticalAlerts = alertSystem.alertQueue.filter(alert => alert.level.priority === 4).length;
+            alertSystem.activeAlerts = alertSystem.alertQueue.filter(alert => alert.active).length;
+
+            // Update UI
+            document.getElementById('totalAlerts').textContent = alertSystem.totalAlerts;
+            document.getElementById('criticalAlerts').textContent = alertSystem.criticalAlerts;
+            document.getElementById('activeAlerts').textContent = alertSystem.activeAlerts;
+        }
+
+        // Alert Sound Functions
+        function playAlertSound(priority) {
+            if (!alertSystem.soundEnabled) return;
+
+            // Create audio context for different priority sounds
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Different sounds for different priorities
+            const frequencies = {
+                4: [800, 1000, 800], // Critical - alarm pattern
+                3: [600, 800],       // High - warning beeps
+                2: [500],            // Medium - single beep
+                1: [400],            // Low - soft beep
+                0: [300]             // Info - subtle notification
+            };
+
+            const pattern = frequencies[priority] || frequencies[0];
+            let currentNote = 0;
+
+            function playNote() {
+                if (currentNote >= pattern.length) return;
+
+                oscillator.frequency.setValueAtTime(pattern[currentNote], audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+                currentNote++;
+                if (currentNote < pattern.length) {
+                    setTimeout(playNote, 300);
+                }
+            }
+
+            oscillator.start();
+            playNote();
+            
+            setTimeout(() => {
+                oscillator.stop();
+            }, pattern.length * 300);
+        }
+
+        function toggleAlertSound() {
+            alertSystem.soundEnabled = !alertSystem.soundEnabled;
+            const soundToggle = document.getElementById('soundToggle');
+            
+            if (alertSystem.soundEnabled) {
+                soundToggle.textContent = '🔊 Enabled';
+                soundToggle.classList.add('enabled');
+                playAlertSound(2); // Test sound
+            } else {
+                soundToggle.textContent = '🔇 Disabled';
+                soundToggle.classList.remove('enabled');
+            }
+        }
+
+        // Main Toggle Function
+        async function togglePushNotifications() {
+            if (!alertSystem.enabled) {
+                const success = await requestNotificationPermission();
+                if (success) {
+                    startAlertMonitoring();
+                }
+            } else {
+                alertSystem.enabled = false;
+                updateNotificationStatus("Disabled", false);
+                stopAlertMonitoring();
+            }
+        }
+
+        // Alert Monitoring Functions
+        function startAlertMonitoring() {
+            if (alertSystem.alertInterval) {
+                clearInterval(alertSystem.alertInterval);
+            }
+
+            // Monitor for alerts every 5 seconds
+            alertSystem.alertInterval = setInterval(() => {
+                checkForAlerts();
+            }, 5000);
+
+            console.log("🔍 Alert monitoring started");
+        }
+
+        function stopAlertMonitoring() {
+            if (alertSystem.alertInterval) {
+                clearInterval(alertSystem.alertInterval);
+                alertSystem.alertInterval = null;
+            }
+            console.log("🛑 Alert monitoring stopped");
+        }
+
+        function checkForAlerts() {
+            // Simulate alert generation based on chart data and system status
+            generateSmartAlerts();
+        }
+
+        // Smart Alert Generation
+        function generateSmartAlerts() {
+            const random = Math.random();
+
+            // Critical threat detection (5% chance)
+            if (random < 0.05) {
+                createAlert(
+                    "Critical Threat Detected",
+                    "Advanced Persistent Threat (APT) activity detected from multiple IP addresses",
+                    ALERT_LEVELS.CRITICAL,
+                    ALERT_CATEGORIES.THREAT_DETECTION,
+                    "Source IPs: 192.168.1.45, 10.0.0.23 | Attack Vector: SQL Injection | Confidence: 95%"
+                );
+            }
+            // High priority alerts (10% chance)
+            else if (random < 0.15) {
+                const highAlerts = [
+                    {
+                        title: "Suspicious Activity Spike",
+                        message: "Unusual increase in attack vectors detected in the last 10 minutes",
+                        details: "Attack increase: +150% | Primary vectors: Phishing, Malware"
+                    },
+                    {
+                        title: "System Performance Warning",
+                        message: "CPU usage has exceeded 85% for more than 5 minutes",
+                        details: "Current CPU: 89% | Memory: 76% | Disk I/O: High"
+                    },
+                    {
+                        title: "Feed Connectivity Issue",
+                        message: "Multiple threat intelligence feeds are reporting connectivity issues",
+                        details: "Affected feeds: 3/12 | Status: Intermittent | Impact: Medium"
+                    }
+                ];
+                
+                const alert = highAlerts[Math.floor(Math.random() * highAlerts.length)];
+                createAlert(alert.title, alert.message, ALERT_LEVELS.HIGH, ALERT_CATEGORIES.SYSTEM_HEALTH, alert.details);
+            }
+            // Medium priority alerts (15% chance)
+            else if (random < 0.30) {
+                const mediumAlerts = [
+                    {
+                        title: "Geographic Threat Pattern",
+                        message: "Increased threat activity detected from Eastern Europe region",
+                        category: ALERT_CATEGORIES.THREAT_DETECTION
+                    },
+                    {
+                        title: "Resource Usage Alert",
+                        message: "Memory usage approaching 80% threshold",
+                        category: ALERT_CATEGORIES.PERFORMANCE
+                    },
+                    {
+                        title: "Data Feed Update",
+                        message: "New IOC indicators available from VirusTotal feed",
+                        category: ALERT_CATEGORIES.FEED_STATUS
+                    }
+                ];
+                
+                const alert = mediumAlerts[Math.floor(Math.random() * mediumAlerts.length)];
+                createAlert(alert.title, alert.message, ALERT_LEVELS.MEDIUM, alert.category);
+            }
+            // Info alerts (10% chance)
+            else if (random < 0.40) {
+                const infoAlerts = [
+                    {
+                        title: "Hourly Activity Report",
+                        message: `System processed ${Math.floor(Math.random() * 500 + 200)} threats in the last hour`,
+                        category: ALERT_CATEGORIES.DATA_INTEGRITY
+                    },
+                    {
+                        title: "Feed Synchronization",
+                        message: "All threat intelligence feeds successfully synchronized",
+                        category: ALERT_CATEGORIES.FEED_STATUS
+                    }
+                ];
+                
+                const alert = infoAlerts[Math.floor(Math.random() * infoAlerts.length)];
+                createAlert(alert.title, alert.message, ALERT_LEVELS.INFO, alert.category);
+            }
+        }
 
         // Initialize all charts when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeCharts();
             loadInitialData();
+            
+            // Initialize Alert System
+            initializeAlertSystem();
         });
+
+        // Alert System Initialization
+        async function initializeAlertSystem() {
+            console.log("🔔 Initializing Alert System...");
+            
+            // Initialize push notifications
+            await initializePushNotifications();
+            
+            // Show welcome message
+            setTimeout(() => {
+                createAlert(
+                    "Alert System Online",
+                    "CTI-sHARE Alert System is now monitoring for threats and system issues",
+                    ALERT_LEVELS.INFO,
+                    ALERT_CATEGORIES.SYSTEM_HEALTH,
+                    "Features: Push notifications, Sound alerts, Real-time monitoring"
+                );
+            }, 2000);
+            
+            console.log("✅ Alert System initialized successfully");
+        }
 
         function initializeCharts() {
             // Categories Chart (Doughnut)
@@ -1286,6 +3039,365 @@
                     }
                 }
             });
+        }
+
+        // Individual Active Chart Initialization Functions
+        function initializeSystemHealthChart() {
+            if (!systemHealthChart) {
+                const systemHealthCtx = document.getElementById('systemHealthChart').getContext('2d');
+                systemHealthChart = new Chart(systemHealthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'CPU %',
+                                data: [],
+                                borderColor: '#dc3545',
+                                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                                tension: 0.4,
+                                fill: false
+                            },
+                            {
+                                label: 'Memory %',
+                                data: [],
+                                borderColor: '#17a2b8',
+                                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                                tension: 0.4,
+                                fill: false
+                            },
+                            {
+                                label: 'Disk %',
+                                data: [],
+                                borderColor: '#6f42c1',
+                                backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                                tension: 0.4,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: { 
+                                display: true, 
+                                text: '🖥️ System Performance Timeline (Live)',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { display: true, text: 'Usage %' }
+                            }
+                        },
+                        animation: { duration: 750, easing: 'easeInOutQuart' }
+                    }
+                });
+                console.log('✅ System Health Chart initialized');
+            }
+        }
+
+        function initializeResourceDistributionChart() {
+            if (!resourceDistributionChart) {
+                const resourceDistributionCtx = document.getElementById('resourceDistributionChart').getContext('2d');
+                resourceDistributionChart = new Chart(resourceDistributionCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Available', 'System', 'Applications', 'Cache'],
+                        datasets: [{
+                            data: [60, 15, 20, 5],
+                            backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#6c757d'],
+                            borderWidth: 3,
+                            borderColor: '#fff',
+                            hoverBorderWidth: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            title: { 
+                                display: true, 
+                                text: '💾 Resource Distribution (Live)',
+                                font: { size: 16, weight: 'bold' }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                        return `${context.label}: ${context.parsed}% (${percentage}% of total)`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: { animateRotate: true, animateScale: true }
+                    }
+                });
+                console.log('✅ Resource Distribution Chart initialized');
+            }
+        }
+
+        function initializeAttackVectorsChart() {
+            if (!attackVectorsChart) {
+                const attackVectorsCtx = document.getElementById('attackVectorsChart').getContext('2d');
+                attackVectorsChart = new Chart(attackVectorsCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: ['Malware', 'Phishing', 'DDoS', 'SQL Injection', 'XSS', 'Brute Force'],
+                        datasets: [{
+                            data: [25, 18, 15, 12, 10, 8],
+                            backgroundColor: [
+                                'rgba(220, 53, 69, 0.8)',
+                                'rgba(253, 126, 20, 0.8)',
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(40, 167, 69, 0.8)',
+                                'rgba(23, 162, 184, 0.8)',
+                                'rgba(111, 66, 193, 0.8)'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            title: { 
+                                display: true, 
+                                text: '🎯 Attack Vectors (Live)',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: { r: { beginAtZero: true } },
+                        animation: { animateRotate: true, animateScale: true }
+                    }
+                });
+                console.log('✅ Attack Vectors Chart initialized');
+            }
+        }
+
+        function initializeGeographicChart() {
+            if (!geographicChart) {
+                const geographicCtx = document.getElementById('geographicChart').getContext('2d');
+                geographicChart = new Chart(geographicCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['USA', 'China', 'Russia', 'Germany', 'Brazil', 'India', 'UK', 'France'],
+                        datasets: [{
+                            label: 'Threat Count',
+                            data: [45, 38, 32, 28, 22, 20, 18, 15],
+                            backgroundColor: [
+                                'rgba(220, 53, 69, 0.8)',
+                                'rgba(253, 126, 20, 0.8)',
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(40, 167, 69, 0.8)',
+                                'rgba(23, 162, 184, 0.8)',
+                                'rgba(111, 66, 193, 0.8)',
+                                'rgba(108, 117, 125, 0.8)',
+                                'rgba(220, 53, 69, 0.6)'
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: { 
+                                display: true, 
+                                text: '🌍 Geographic Distribution (Live)',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Threat Count' } },
+                            x: { title: { display: true, text: 'Countries' } }
+                        },
+                        animation: { duration: 1000, easing: 'easeInOutQuart' }
+                    }
+                });
+                console.log('✅ Geographic Distribution Chart initialized');
+            }
+        }
+
+        function initializeHourlyActivityChart() {
+            if (!hourlyActivityChart) {
+                const hourlyActivityCtx = document.getElementById('hourlyActivityChart').getContext('2d');
+                const hours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+                const activityData = hours.map(() => Math.floor(Math.random() * 50 + 10));
+                
+                hourlyActivityChart = new Chart(hourlyActivityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: hours,
+                        datasets: [{
+                            label: 'Threat Activity',
+                            data: activityData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: { 
+                                display: true, 
+                                text: '⏰ Hourly Activity Pattern (Live)',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Activity Level' } },
+                            x: { title: { display: true, text: 'Hour of Day' } }
+                        },
+                        animation: { duration: 1000, easing: 'easeInOutQuart' }
+                    }
+                });
+                console.log('✅ Hourly Activity Chart initialized');
+            }
+        }
+
+        function initializeSeverityChart() {
+            if (!severityChart) {
+                const severityCtx = document.getElementById('severityChart').getContext('2d');
+                severityChart = new Chart(severityCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                        datasets: [{
+                            data: [12, 25, 35, 20, 8],
+                            backgroundColor: [
+                                'rgba(220, 53, 69, 0.8)',
+                                'rgba(253, 126, 20, 0.8)',
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(40, 167, 69, 0.8)',
+                                'rgba(23, 162, 184, 0.8)'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            title: { 
+                                display: true, 
+                                text: '🚨 Active Severity Distribution',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: { r: { beginAtZero: true } },
+                        animation: { animateRotate: true, animateScale: true }
+                    }
+                });
+                console.log('✅ Severity Distribution Chart initialized');
+            }
+        }
+
+        function initializeFeedStatusChart() {
+            if (!feedStatusChart) {
+                const feedStatusCtx = document.getElementById('feedStatusChart').getContext('2d');
+                feedStatusChart = new Chart(feedStatusCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Feed Health %',
+                                data: [],
+                                borderColor: '#28a745',
+                                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Active Feeds',
+                                data: [],
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                                tension: 0.4,
+                                fill: false,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: { 
+                                display: true, 
+                                text: '📡 Feed Status Timeline',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, max: 100, title: { display: true, text: 'Health %' } },
+                            y1: { type: 'linear', position: 'right', title: { display: true, text: 'Feed Count' } }
+                        }
+                    }
+                });
+                console.log('✅ Feed Status Chart initialized');
+            }
+        }
+
+        function initializeIOCTypesChart() {
+            if (!iocTypesChart) {
+                const iocTypesCtx = document.getElementById('iocTypesChart').getContext('2d');
+                iocTypesChart = new Chart(iocTypesCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: ['IP Addresses', 'Domains', 'URLs', 'File Hashes', 'Email Addresses', 'CVEs'],
+                        datasets: [{
+                            data: [1250, 980, 850, 720, 450, 320],
+                            backgroundColor: [
+                                'rgba(220, 53, 69, 0.8)',
+                                'rgba(253, 126, 20, 0.8)', 
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(40, 167, 69, 0.8)',
+                                'rgba(23, 162, 184, 0.8)',
+                                'rgba(111, 66, 193, 0.8)'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            title: { 
+                                display: true, 
+                                text: '📊 IOC Types Distribution',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: { r: { beginAtZero: true } }
+                    }
+                });
+                console.log('✅ IOC Types Chart initialized');
+            }
         }
 
         function loadInitialData() {
@@ -2016,6 +4128,513 @@
             }
         }
 
+        // ===== COMPREHENSIVE ACTIVE CHART UPDATE FUNCTIONS =====
+
+        // System Performance Timeline Active Updates
+        function updateSystemPerformanceTimeline() {
+            if (!systemHealthChart) return;
+            
+            const currentTime = new Date().toLocaleTimeString();
+            const maxDataPoints = 20;
+            
+            // Generate realistic system metrics
+            const cpuUsage = Math.floor(Math.random() * 40 + 20);  // 20-60%
+            const memoryUsage = Math.floor(Math.random() * 35 + 45); // 45-80%
+            const diskUsage = Math.floor(Math.random() * 15 + 25);   // 25-40%
+            
+            // Calculate health score
+            const healthScore = Math.max(0, 100 - Math.floor((cpuUsage + memoryUsage + diskUsage) / 3));
+            
+            // Update live information display
+            updateLiveInfo('systemPerformance', {
+                cpu: cpuUsage,
+                memory: memoryUsage,
+                disk: diskUsage,
+                health: healthScore
+            });
+            
+            // Maintain data window
+            if (systemHealthChart.data.labels.length >= maxDataPoints) {
+                systemHealthChart.data.labels.shift();
+                systemHealthChart.data.datasets.forEach(dataset => dataset.data.shift());
+            }
+            
+            // Add new data
+            systemHealthChart.data.labels.push(currentTime);
+            systemHealthChart.data.datasets[0].data.push(cpuUsage);
+            systemHealthChart.data.datasets[1].data.push(memoryUsage);
+            systemHealthChart.data.datasets[2].data.push(diskUsage);
+            
+            systemHealthChart.update('active');
+            
+            // Generate alerts based on system performance
+            checkSystemPerformanceAlerts(cpuUsage, memoryUsage, diskUsage);
+            
+            console.log(`📊 System Performance Updated: CPU=${cpuUsage}%, MEM=${memoryUsage}%, DISK=${diskUsage}%`);
+        }
+
+        function checkSystemPerformanceAlerts(cpu, memory, disk) {
+            // Critical alerts (>90%)
+            if (cpu > 90) {
+                createAlert(
+                    "Critical CPU Usage",
+                    `CPU usage has reached ${cpu}% - immediate attention required`,
+                    ALERT_LEVELS.CRITICAL,
+                    ALERT_CATEGORIES.PERFORMANCE,
+                    `Current CPU: ${cpu}% | Threshold: 90% | Action: Investigate running processes`
+                );
+            } else if (memory > 90) {
+                createAlert(
+                    "Critical Memory Usage", 
+                    `Memory usage has reached ${memory}% - system may become unstable`,
+                    ALERT_LEVELS.CRITICAL,
+                    ALERT_CATEGORIES.PERFORMANCE,
+                    `Current Memory: ${memory}% | Available: ${100-memory}% | Action: Free memory or restart services`
+                );
+            }
+            
+            // High priority alerts (80-90%)
+            else if (cpu > 80) {
+                createAlert(
+                    "High CPU Usage Warning",
+                    `CPU usage is at ${cpu}% - monitor closely`,
+                    ALERT_LEVELS.HIGH,
+                    ALERT_CATEGORIES.PERFORMANCE
+                );
+            } else if (memory > 80) {
+                createAlert(
+                    "High Memory Usage Warning",
+                    `Memory usage is at ${memory}% - consider optimization`,
+                    ALERT_LEVELS.HIGH,
+                    ALERT_CATEGORIES.PERFORMANCE
+                );
+            } else if (disk > 85) {
+                createAlert(
+                    "Disk Usage Warning",
+                    `Disk usage is at ${disk}% - consider cleanup`,
+                    ALERT_LEVELS.MEDIUM,
+                    ALERT_CATEGORIES.PERFORMANCE
+                );
+            }
+        }
+
+        function startSystemPerformanceTimeline() {
+            if (!window.systemPerformanceInterval) {
+                window.systemPerformanceInterval = setInterval(() => {
+                    updateSystemPerformanceTimeline();
+                }, 5000); // Update every 5 seconds
+                
+                const btn = document.getElementById('systemPerformanceLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Stop Performance Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+                }
+                console.log('🖥️ System Performance Timeline started');
+            } else {
+                clearInterval(window.systemPerformanceInterval);
+                window.systemPerformanceInterval = null;
+                
+                const btn = document.getElementById('systemPerformanceLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Start Performance Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }
+                console.log('🖥️ System Performance Timeline stopped');
+            }
+        }
+
+        // Resource Distribution Active Updates
+        function updateResourceDistribution() {
+            if (!resourceDistributionChart) return;
+            
+            // Generate realistic resource distribution
+            const totalMemory = 100;
+            const systemUsage = Math.floor(Math.random() * 10 + 10);      // 10-20%
+            const applicationUsage = Math.floor(Math.random() * 25 + 25); // 25-50%
+            const cacheUsage = Math.floor(Math.random() * 10 + 5);        // 5-15%
+            const availableMemory = totalMemory - systemUsage - applicationUsage - cacheUsage;
+            
+            const newData = [availableMemory, systemUsage, applicationUsage, cacheUsage];
+            
+            // Update live information display
+            updateLiveInfo('resourceDistribution', {
+                available: availableMemory,
+                system: systemUsage,
+                apps: applicationUsage,
+                cache: cacheUsage
+            });
+            
+            resourceDistributionChart.data.datasets[0].data = newData;
+            resourceDistributionChart.update('active');
+            
+            console.log(`💾 Resource Distribution Updated: Available=${availableMemory}%, System=${systemUsage}%, Apps=${applicationUsage}%, Cache=${cacheUsage}%`);
+        }
+
+        function startResourceDistribution() {
+            if (!window.resourceDistributionInterval) {
+                window.resourceDistributionInterval = setInterval(() => {
+                    updateResourceDistribution();
+                }, 8000); // Update every 8 seconds
+                
+                const btn = document.getElementById('resourceDistributionLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Stop Resource Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+                }
+                console.log('💾 Resource Distribution monitoring started');
+            } else {
+                clearInterval(window.resourceDistributionInterval);
+                window.resourceDistributionInterval = null;
+                
+                const btn = document.getElementById('resourceDistributionLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Start Resource Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }
+                console.log('💾 Resource Distribution monitoring stopped');
+            }
+        }
+
+        // Enhanced Attack Vectors Live Updates
+        function updateAttackVectorsLive() {
+            if (!attackVectorsChart) return;
+            
+            const attackTypes = ['Malware', 'Phishing', 'DDoS', 'SQL Injection', 'XSS', 'Brute Force', 'Ransomware', 'APT'];
+            const newData = attackTypes.map(() => Math.floor(Math.random() * 100) + 20);
+            
+            // Dynamic color coding based on threat level
+            const dynamicColors = newData.map(value => {
+                if (value > 80) return 'rgba(220, 53, 69, 0.9)';   // Critical - Red
+                if (value > 60) return 'rgba(253, 126, 20, 0.9)';  // High - Orange  
+                if (value > 40) return 'rgba(255, 193, 7, 0.9)';   // Medium - Yellow
+                return 'rgba(40, 167, 69, 0.9)';                   // Low - Green
+            });
+            
+            attackVectorsChart.data.labels = attackTypes;
+            attackVectorsChart.data.datasets[0].data = newData;
+            attackVectorsChart.data.datasets[0].backgroundColor = dynamicColors;
+            attackVectorsChart.update('active');
+            
+            // Calculate threat metrics
+            const totalThreats = newData.reduce((a, b) => a + b, 0);
+            const criticalCount = newData.filter(val => val > 80).length;
+            const topVectorIndex = newData.indexOf(Math.max(...newData));
+            const topVector = attackTypes[topVectorIndex];
+            const trend = criticalCount > 2 ? '📈' : criticalCount > 0 ? '📊' : '📉';
+            
+            // Update live information display
+            updateLiveInfo('attackVectors', {
+                total: totalThreats,
+                critical: criticalCount,
+                topVector: topVector,
+                trend: trend
+            });
+            
+            // Generate alerts based on attack vector data
+            checkAttackVectorAlerts(attackTypes, newData, totalThreats, criticalCount);
+            
+            console.log(`🎯 Attack Vectors Updated: Total=${totalThreats}, Critical=${criticalCount}, Types=${attackTypes.length}`);
+        }
+
+        function checkAttackVectorAlerts(attackTypes, data, totalThreats, criticalCount) {
+            // Critical threat alerts
+            if (criticalCount >= 3) {
+                createAlert(
+                    "Multiple Critical Threats Detected",
+                    `${criticalCount} attack vectors showing critical activity levels`,
+                    ALERT_LEVELS.CRITICAL,
+                    ALERT_CATEGORIES.THREAT_DETECTION,
+                    `Total threats: ${totalThreats} | Critical vectors: ${criticalCount} | Immediate action required`
+                );
+            }
+            
+            // Check for specific high-priority attack types
+            data.forEach((value, index) => {
+                const attackType = attackTypes[index];
+                
+                if (value > 90) {
+                    if (attackType === 'APT' || attackType === 'Ransomware') {
+                        createAlert(
+                            `Critical ${attackType} Activity`,
+                            `${attackType} threat level is at ${value}% - this requires immediate investigation`,
+                            ALERT_LEVELS.CRITICAL,
+                            ALERT_CATEGORIES.SECURITY_BREACH,
+                            `Threat Level: ${value}% | Attack Type: ${attackType} | Priority: Maximum`
+                        );
+                    } else {
+                        createAlert(
+                            `High ${attackType} Activity`,
+                            `${attackType} threat activity has spiked to ${value}%`,
+                            ALERT_LEVELS.HIGH,
+                            ALERT_CATEGORIES.THREAT_DETECTION
+                        );
+                    }
+                }
+            });
+            
+            // Overall threat level assessment
+            const avgThreatLevel = totalThreats / attackTypes.length;
+            if (avgThreatLevel > 70) {
+                createAlert(
+                    "Elevated Threat Environment",
+                    `Average threat level across all vectors is ${avgThreatLevel.toFixed(1)}%`,
+                    ALERT_LEVELS.HIGH,
+                    ALERT_CATEGORIES.THREAT_DETECTION,
+                    `Recommendation: Increase monitoring frequency and review security measures`
+                );
+            }
+        }
+
+        function startAttackVectorsLive() {
+            if (!window.attackVectorsInterval) {
+                window.attackVectorsInterval = setInterval(() => {
+                    updateAttackVectorsLive();
+                }, 7000); // Update every 7 seconds
+                
+                const btn = document.getElementById('attackVectorsLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Stop Attack Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+                }
+                console.log('🎯 Attack Vectors Live monitoring started');
+            } else {
+                clearInterval(window.attackVectorsInterval);
+                window.attackVectorsInterval = null;
+                
+                const btn = document.getElementById('attackVectorsLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Start Attack Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }
+                console.log('🎯 Attack Vectors Live monitoring stopped');
+            }
+        }
+
+        // Enhanced Geographic Distribution Live Updates
+        function updateGeographicDistributionLive() {
+            if (!geographicChart) return;
+            
+            const countries = ['USA', 'China', 'Russia', 'Brazil', 'India', 'Germany', 'UK', 'France', 'Japan', 'Canada'];
+            const threatData = countries.map(() => Math.floor(Math.random() * 80) + 10);
+            
+            // Dynamic color coding based on threat intensity
+            const dynamicColors = threatData.map(value => {
+                if (value > 60) return 'rgba(220, 53, 69, 0.9)';   // High threat - Red
+                if (value > 40) return 'rgba(253, 126, 20, 0.9)';  // Medium threat - Orange
+                if (value > 25) return 'rgba(255, 193, 7, 0.9)';   // Low-Medium - Yellow
+                return 'rgba(40, 167, 69, 0.9)';                   // Low threat - Green
+            });
+            
+            geographicChart.data.labels = countries;
+            geographicChart.data.datasets[0].data = threatData;
+            geographicChart.data.datasets[0].backgroundColor = dynamicColors;
+            geographicChart.update('active');
+            
+            // Calculate geographic metrics
+            const totalGlobalThreats = threatData.reduce((a, b) => a + b, 0);
+            const topThreatCountry = countries[threatData.indexOf(Math.max(...threatData))];
+            const activeRegions = threatData.filter(val => val > 30).length;
+            const avgThreat = Math.round(totalGlobalThreats / countries.length);
+            const threatLevel = avgThreat > 60 ? 'Critical' : avgThreat > 40 ? 'High' : avgThreat > 25 ? 'Medium' : 'Low';
+            
+            // Update live information display
+            updateLiveInfo('geographic', {
+                total: totalGlobalThreats,
+                topCountry: topThreatCountry,
+                regions: activeRegions,
+                level: threatLevel
+            });
+            
+            console.log(`🌍 Geographic Distribution Updated: Total=${totalGlobalThreats}, Top Threat=${topThreatCountry}, Countries=${countries.length}`);
+        }
+
+        function startGeographicDistributionLive() {
+            if (!window.geographicDistributionInterval) {
+                window.geographicDistributionInterval = setInterval(() => {
+                    updateGeographicDistributionLive();
+                }, 10000); // Update every 10 seconds
+                
+                const btn = document.getElementById('geographicLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Stop Geographic Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+                }
+                console.log('🌍 Geographic Distribution Live monitoring started');
+            } else {
+                clearInterval(window.geographicDistributionInterval);
+                window.geographicDistributionInterval = null;
+                
+                const btn = document.getElementById('geographicLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Start Geographic Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }
+                console.log('🌍 Geographic Distribution Live monitoring stopped');
+            }
+        }
+
+        // Enhanced Hourly Activity Pattern Live Updates
+        function updateHourlyActivityPatternLive() {
+            if (!hourlyActivityChart) return;
+            
+            const currentHour = new Date().getHours();
+            const hours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+            
+            // Generate realistic hourly pattern with peak times
+            const activityData = hours.map((_, hour) => {
+                let baseActivity = Math.floor(Math.random() * 30) + 10;
+                
+                // Simulate peak hours (9-17 business hours)
+                if (hour >= 9 && hour <= 17) {
+                    baseActivity += Math.floor(Math.random() * 40) + 20;
+                }
+                
+                // Simulate evening activity spike (19-22)
+                if (hour >= 19 && hour <= 22) {
+                    baseActivity += Math.floor(Math.random() * 25) + 15;
+                }
+                
+                // Highlight current hour with higher activity
+                if (hour === currentHour) {
+                    baseActivity += Math.floor(Math.random() * 20) + 10;
+                }
+                
+                return baseActivity;
+            });
+            
+            hourlyActivityChart.data.labels = hours;
+            hourlyActivityChart.data.datasets[0].data = activityData;
+            
+            // Dynamic gradient based on current hour activity
+            const currentActivity = activityData[currentHour];
+            let gradientColor;
+            if (currentActivity > 70) {
+                gradientColor = 'rgba(220, 53, 69, 0.3)';  // High activity - Red gradient
+            } else if (currentActivity > 50) {
+                gradientColor = 'rgba(255, 193, 7, 0.3)';   // Medium activity - Yellow gradient
+            } else {
+                gradientColor = 'rgba(102, 126, 234, 0.3)'; // Normal activity - Blue gradient
+            }
+            
+            hourlyActivityChart.data.datasets[0].backgroundColor = gradientColor;
+            hourlyActivityChart.update('active');
+            
+            // Calculate activity metrics
+            const avgActivity = Math.round(activityData.reduce((a, b) => a + b, 0) / 24);
+            const peakActivity = Math.max(...activityData);
+            const peakHour = hours[activityData.indexOf(peakActivity)];
+            const currentActivity = activityData[currentHour];
+            const trend = currentActivity > avgActivity ? '📈' : currentActivity < avgActivity ? '📉' : '📊';
+            
+            // Update live information display
+            updateLiveInfo('hourlyActivity', {
+                current: currentActivity,
+                peak: peakHour,
+                average: avgActivity,
+                trend: trend
+            });
+            
+            console.log(`⏰ Hourly Activity Updated: Current=${currentActivity}, Peak=${peakActivity} at ${peakHour}, Avg=${avgActivity}`);
+        }
+
+        function startHourlyActivityPatternLive() {
+            if (!window.hourlyActivityInterval) {
+                window.hourlyActivityInterval = setInterval(() => {
+                    updateHourlyActivityPatternLive();
+                }, 6000); // Update every 6 seconds
+                
+                const btn = document.getElementById('hourlyActivityLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Stop Activity Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+                }
+                console.log('⏰ Hourly Activity Pattern Live monitoring started');
+            } else {
+                clearInterval(window.hourlyActivityInterval);
+                window.hourlyActivityInterval = null;
+                
+                const btn = document.getElementById('hourlyActivityLiveBtn');
+                if (btn) {
+                    btn.textContent = 'Start Activity Monitor';
+                    btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }
+                console.log('⏰ Hourly Activity Pattern Live monitoring stopped');
+            }
+        }
+
+        // Master Control Functions for All Active Charts
+        function startAllActiveCharts() {
+            console.log('🚀 Starting all active chart monitoring...');
+            
+            // Start all individual chart monitors
+            startSystemPerformanceTimeline();
+            setTimeout(() => startResourceDistribution(), 1000);
+            setTimeout(() => startAttackVectorsLive(), 2000);
+            setTimeout(() => startGeographicDistributionLive(), 3000);
+            setTimeout(() => startHourlyActivityPatternLive(), 4000);
+            
+            // Update master control button
+            const masterBtn = document.getElementById('startAllChartsBtn');
+            if (masterBtn) {
+                masterBtn.textContent = 'Stop All Active Charts';
+                masterBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #e83e8c 100%)';
+            }
+            
+            console.log('✅ All active chart monitoring started successfully!');
+        }
+
+        function stopAllActiveCharts() {
+            console.log('🛑 Stopping all active chart monitoring...');
+            
+            // Stop all intervals
+            const intervals = [
+                'systemPerformanceInterval',
+                'resourceDistributionInterval', 
+                'attackVectorsInterval',
+                'geographicDistributionInterval',
+                'hourlyActivityInterval'
+            ];
+            
+            intervals.forEach(intervalName => {
+                if (window[intervalName]) {
+                    clearInterval(window[intervalName]);
+                    window[intervalName] = null;
+                }
+            });
+            
+            // Reset all button states
+            const buttons = [
+                { id: 'systemPerformanceLiveBtn', text: 'Start Performance Monitor' },
+                { id: 'resourceDistributionLiveBtn', text: 'Start Resource Monitor' },
+                { id: 'attackVectorsLiveBtn', text: 'Start Attack Monitor' },
+                { id: 'geographicLiveBtn', text: 'Start Geographic Monitor' },
+                { id: 'hourlyActivityLiveBtn', text: 'Start Activity Monitor' },
+                { id: 'startAllChartsBtn', text: 'Start All Active Charts' }
+            ];
+            
+            buttons.forEach(({ id, text }) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.textContent = text;
+                    btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }
+            });
+            
+            console.log('✅ All active chart monitoring stopped successfully!');
+        }
+
+        function refreshAllActiveCharts() {
+            console.log('🔄 Refreshing all active charts...');
+            
+            updateSystemPerformanceTimeline();
+            updateResourceDistribution();
+            updateAttackVectorsLive();
+            updateGeographicDistributionLive();
+            updateHourlyActivityPatternLive();
+            
+            console.log('✅ All active charts refreshed successfully!');
+        }
+
         // Enhanced chart tooltips
         function createAdvancedTooltips() {
             Chart.defaults.plugins.tooltip.callbacks.title = function(tooltipItems) {
@@ -2577,6 +5196,47 @@
             
             // Initialize live updates for threat feeds table
             updateFeedSourcesTable();
+            
+            // Initialize notification system and panel states
+            updateNotificationDisplay();
+            
+            // Add welcome notification
+            setTimeout(() => {
+                addNotification(
+                    '🛡️ CTI-sHARE Dashboard Active', 
+                    'Welcome to the advanced threat intelligence dashboard. All monitoring systems are now active with real-time data visualization.', 
+                    'success',
+                    [
+                        { text: '📊 View Charts', onclick: 'document.querySelector(".chart-container").scrollIntoView({behavior:"smooth"})' },
+                        { text: '🔔 Enable Alerts', onclick: 'requestNotificationPermission()' }
+                    ]
+                );
+                
+                addNotification(
+                    '📈 Real-time Monitoring Started', 
+                    'Active charts are now updating with live threat intelligence data. Social sharing and push notifications are available.', 
+                    'info'
+                );
+            }, 1000);
+            
+            // Initialize chart update intervals
+            setInterval(updateActiveCharts, 2000);
+            setInterval(updateLiveInformation, 3000);
+            
+            // Check for notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                setTimeout(() => {
+                    addNotification(
+                        '🔔 Enable Desktop Notifications?', 
+                        'Allow desktop notifications to receive real-time alerts even when the dashboard is not active.', 
+                        'info',
+                        [
+                            { text: '✅ Allow', onclick: 'requestNotificationPermission()', type: 'primary' },
+                            { text: '❌ Maybe Later', onclick: 'removeNotification(this.closest(".notification-item").dataset.id)' }
+                        ]
+                    );
+                }, 3000);
+            }
             
             console.log('Complete Active Dashboard initialized successfully with all monitoring components');
         });
