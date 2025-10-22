@@ -136,7 +136,7 @@ def train_models():
 
 def main():
     parser = argparse.ArgumentParser(
-        description='AI-driven Semantic Framework for Cyber Threat Analysis'
+        description='CTI-sHARE-AI-driven Semantic Framework for Cyber Threat Analysis and Sharing'
     )
     
     parser.add_argument(
@@ -161,7 +161,7 @@ def main():
     args = parser.parse_args()
     
     print("=" * 80)
-    print("AI-driven Semantic Framework for Cyber Threat Analysis")
+    print("CTI-sHARE-AI-driven Semantic Framework for Cyber Threat Analysis and Sharing")
     print("=" * 80)
     
     if args.mode == 'analyze':
