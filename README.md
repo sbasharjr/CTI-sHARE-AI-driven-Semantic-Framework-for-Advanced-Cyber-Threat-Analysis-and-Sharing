@@ -81,7 +81,7 @@ Dataset-Semantic-Framework/
 
 1. Clone the repository:
 ```bash
-git clone [https://github.com/sbasharjr/CTI-sHARE-AI-driven-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing.git]
+git clone https://github.com/sbasharjr/CTI-sHARE-AI-driven-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing.git
 cd CTI-sHARE-AI-driven-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing
 ```
 
@@ -509,5 +509,5 @@ Future enhancements:
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: Sept, 2025
+**Last Updated**: October, 2024
 **Status**: Production Ready
