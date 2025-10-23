@@ -1,251 +1,160 @@
 #!/usr/bin/env python3
 """
-Alert System and Push Notifications Testing Script
-Tests the comprehensive alert system implemented for CTI-sHARE dashboard
+Test Alert System and Push Notifications
+CTI-sHARE Threat Intelligence Dashboard
 """
 
 import time
 import webbrowser
-from flask import Flask, render_template, jsonify, request
-import logging
+import subprocess
 import sys
-import os
-
-# Add the src directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-
-from dashboard.dashboard import app
+from pathlib import Path
 
 def test_alert_system():
-    """Test and verify the alert system components"""
+    """
+    Test the complete alert system implementation including:
+    - Push notifications with hide panel
+    - Header positioning
+    - Interactive controls
+    - Different alert types
+    """
     
-    print("🚨 ALERT SYSTEM & PUSH NOTIFICATIONS TESTING")
-    print("=" * 60)
+    print("🔔 Testing CTI-sHARE Alert System")
+    print("=" * 50)
     
-    test_results = {
-        'push_notifications': False,
-        'alert_generation': False,
-        'sound_alerts': False,
-        'alert_categories': False,
-        'smart_monitoring': False
-    }
+    # Check if the dashboard file exists
+    dashboard_path = Path(__file__).parent / "src" / "dashboard" / "templates" / "dashboard.html"
     
-    print("🔔 Testing Alert System Components...")
+    if not dashboard_path.exists():
+        print("❌ Dashboard template not found!")
+        return False
     
-    # Test 1: Push Notifications API Support
+    print("✅ Dashboard template found")
+    
+    # Start the dashboard server
+    print("\n🚀 Starting dashboard server...")
+    
     try:
-        print("  ✓ Push Notifications API - Browser notification support verified")
-        print("  ✓ Notification Permission - Request/grant system implemented")
-        print("  ✓ Background Notifications - Service worker integration ready")
-        test_results['push_notifications'] = True
-    except Exception as e:
-        print(f"  ✗ Push Notifications failed: {e}")
-    
-    # Test 2: Alert Generation System
-    try:
-        print("  ✓ Alert Creation - Dynamic alert generation system implemented")
-        print("  ✓ Alert Severity Levels - Critical, High, Medium, Low, Info levels")
-        print("  ✓ Alert Categories - 7 categories for different alert types")
-        print("  ✓ Alert Display - Real-time alert container with animations")
-        test_results['alert_generation'] = True
-    except Exception as e:
-        print(f"  ✗ Alert Generation failed: {e}")
-    
-    # Test 3: Sound Alert System
-    try:
-        print("  ✓ Sound Alerts - Web Audio API implementation for different priorities")
-        print("  ✓ Sound Patterns - Different sound patterns for different alert levels")
-        print("  ✓ Sound Controls - Enable/disable toggle functionality")
-        test_results['sound_alerts'] = True
-    except Exception as e:
-        print(f"  ✗ Sound Alerts failed: {e}")
-    
-    # Test 4: Alert Categories
-    try:
-        alert_categories = [
-            'Threat Detection',
-            'System Health', 
-            'Feed Status',
-            'Security Breach',
-            'Performance',
-            'Network',
-            'Data Integrity'
-        ]
+        # Try to start the enhanced dashboard
+        process = subprocess.Popen([
+            sys.executable, "run_enhanced_dashboard.py"
+        ], capture_output=False)
         
-        for category in alert_categories:
-            print(f"  ✓ {category} - Alert category implemented")
-        test_results['alert_categories'] = True
-    except Exception as e:
-        print(f"  ✗ Alert Categories failed: {e}")
-    
-    # Test 5: Smart Monitoring Integration
-    try:
-        print("  ✓ System Performance Monitoring - CPU, Memory, Disk alerts")
-        print("  ✓ Attack Vector Monitoring - Critical threat detection")
-        print("  ✓ Geographic Threat Monitoring - Regional threat pattern alerts")
-        print("  ✓ Real-time Monitoring - 5-second interval smart alert generation")
-        print("  ✓ Alert Thresholds - Configurable severity thresholds")
-        test_results['smart_monitoring'] = True
-    except Exception as e:
-        print(f"  ✗ Smart Monitoring failed: {e}")
-    
-    print("\n🎛️ Testing Alert System Features...")
-    
-    features = [
-        'Real-time Alert Display with Animations',
-        'Push Notification Support with Browser API',
-        'Sound Alert System with Different Priority Patterns',
-        'Alert Statistics Tracking (Total, Critical, Active)',
-        'Interactive Alert Management (Close, Click Actions)',
-        'Alert Auto-removal with Configurable Timers',
-        'Mobile-responsive Alert Design',
-        'Alert Source and Category Information',
-        'Severity-based Color Coding and Icons',
-        'Integration with Chart Monitoring Systems'
-    ]
-    
-    for feature in features:
-        print(f"  ✓ {feature}")
-    
-    # Summary
-    total_tests = len(test_results)
-    passed_tests = sum(test_results.values())
-    
-    print(f"\n📊 ALERT SYSTEM TEST RESULTS")
-    print("=" * 60)
-    print(f"Total Tests: {total_tests}")
-    print(f"Passed: {passed_tests}")
-    print(f"Failed: {total_tests - passed_tests}")
-    print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
-    
-    if passed_tests == total_tests:
-        print("\n🎉 ALL ALERT SYSTEM TESTS PASSED!")
-        print("✅ Push Notifications - READY")
-        print("✅ Alert Generation System - READY") 
-        print("✅ Sound Alert System - READY")
-        print("✅ Alert Categories - READY")
-        print("✅ Smart Monitoring Integration - READY")
+        print("⏳ Waiting for server to start...")
+        time.sleep(3)
         
-        print("\n🚨 ALERT SYSTEM FEATURES:")
-        print("  • Real-time push notifications for critical threats")
-        print("  • Smart alert generation based on system performance")
-        print("  • Sound alerts with priority-based patterns")
-        print("  • 5 severity levels with color-coded display")
-        print("  • 7 alert categories for comprehensive monitoring")
-        print("  • Interactive alert management and statistics")
-        print("  • Mobile-responsive design with animations")
-        print("  • Integration with all active chart monitoring")
+        # Open the dashboard in browser
+        dashboard_url = "http://localhost:8080"
+        print(f"🌐 Opening dashboard: {dashboard_url}")
+        webbrowser.open(dashboard_url)
+        
+        print("\n🎯 ALERT SYSTEM TEST INSTRUCTIONS:")
+        print("-" * 40)
+        print("1. 🔔 Look for the notification bell in the header (top-right)")
+        print("2. 📊 Scroll down to 'Alert System Testing' section")
+        print("3. 🚨 Click 'Critical Alert' button to test push notifications")
+        print("4. ⚠️ Click 'Warning Alert' button to test panel notifications")
+        print("5. ℹ️ Click 'Info Alert' button to test info notifications")
+        print("6. 🔔 Click the bell icon to open/close the notification panel")
+        print("7. ✅ Test 'Mark All Read' and 'Clear All' functions")
+        print("8. ⏰ Wait for automatic alerts (every 10-25 seconds)")
+        print("9. 📱 Test push notification close buttons")
+        print("10. 🎛️ Test notification action buttons (Investigate, Block, etc.)")
+        
+        print("\n🎨 FEATURES TO VERIFY:")
+        print("-" * 25)
+        print("✅ Bell icon with notification badge")
+        print("✅ Sliding notification panel")  
+        print("✅ Push notifications with auto-hide")
+        print("✅ Different alert types (Critical, Warning, Info)")
+        print("✅ Interactive notification actions")
+        print("✅ Mark as read/unread functionality")
+        print("✅ Time stamps and relative time display")
+        print("✅ Responsive design and animations")
+        print("✅ Click outside to close panel")
+        print("✅ Browser notification permission request")
+        
+        print(f"\n🎉 Alert System is ready for testing!")
+        print(f"📍 Dashboard URL: {dashboard_url}")
+        print("Press Ctrl+C to stop the server when done testing...")
+        
+        # Keep the server running
+        try:
+            process.wait()
+        except KeyboardInterrupt:
+            print("\n⏹️ Stopping server...")
+            process.terminate()
+            process.wait()
+            print("✅ Server stopped successfully")
         
         return True
-    else:
-        print("\n❌ SOME TESTS FAILED - Please check configuration")
+        
+    except Exception as e:
+        print(f"❌ Error starting dashboard: {e}")
         return False
 
-def demonstrate_alert_system():
-    """Demonstrate alert system functionality"""
-    print("\n🎬 ALERT SYSTEM DEMONSTRATION")
-    print("=" * 60)
+def validate_alert_features():
+    """Validate that all alert system features are properly implemented"""
     
-    print("🔔 Sample Alerts that will be generated:")
-    print("")
+    print("\n🔍 VALIDATING ALERT SYSTEM FEATURES:")
+    print("-" * 40)
     
-    sample_alerts = [
-        {
-            'title': 'Critical Threat Detected',
-            'message': 'Advanced Persistent Threat (APT) activity detected',
-            'level': 'CRITICAL',
-            'category': 'Threat Detection'
-        },
-        {
-            'title': 'System Performance Warning', 
-            'message': 'CPU usage exceeded 85% for extended period',
-            'level': 'HIGH',
-            'category': 'System Health'
-        },
-        {
-            'title': 'Multiple Attack Vectors Active',
-            'message': 'Ransomware and Malware threats showing high activity',
-            'level': 'HIGH',
-            'category': 'Security Breach'
-        },
-        {
-            'title': 'Feed Connectivity Issue',
-            'message': 'Threat intelligence feeds reporting intermittent issues',
-            'level': 'MEDIUM',
-            'category': 'Feed Status'
-        },
-        {
-            'title': 'Geographic Threat Pattern',
-            'message': 'Increased threat activity from Eastern Europe region',
-            'level': 'MEDIUM',
-            'category': 'Threat Detection'
-        },
-        {
-            'title': 'Hourly Activity Report',
-            'message': 'System processed 347 threats in the last hour',
-            'level': 'INFO',
-            'category': 'Data Integrity'
-        }
-    ]
+    dashboard_path = Path(__file__).parent / "src" / "dashboard" / "templates" / "dashboard.html"
     
-    for i, alert in enumerate(sample_alerts, 1):
-        level_icons = {
-            'CRITICAL': '🚨',
-            'HIGH': '⚠️', 
-            'MEDIUM': '⚡',
-            'LOW': 'ℹ️',
-            'INFO': '💡'
-        }
+    try:
+        with open(dashboard_path, 'r', encoding='utf-8') as f:
+            content = f.read()
         
-        icon = level_icons.get(alert['level'], '📢')
-        print(f"  {i}. {icon} [{alert['level']}] {alert['title']}")
-        print(f"     {alert['message']}")
-        print(f"     Category: {alert['category']}")
-        print("")
-    
-    print("🎯 Alert System Usage Instructions:")
-    print("  1. Access dashboard at http://localhost:8080")
-    print("  2. Click 'Enable Push Notifications' in bottom-right control panel")
-    print("  3. Grant notification permission when prompted by browser")
-    print("  4. Start any active chart monitoring to trigger alerts")
-    print("  5. Watch for real-time alerts in top-right corner")
-    print("  6. Enable sound alerts for audio notifications")
-    print("  7. Click alerts to dismiss or view details")
-
-def start_dashboard_with_alerts():
-    """Start the dashboard server with alert system demonstration"""
-    print("\n🌐 Starting CTI-sHARE Dashboard with Alert System...")
-    print("📍 URL: http://localhost:8080")
-    print("🔔 Alert System: Enabled")
-    print("📱 Push Notifications: Ready")
-    
-    # Open browser after a short delay
-    def open_browser():
-        time.sleep(3)
-        webbrowser.open('http://localhost:8080')
-    
-    import threading
-    threading.Thread(target=open_browser).start()
-    
-    # Start Flask app
-    app.run(host='0.0.0.0', port=8080, debug=True)
+        # Check for key components
+        checks = [
+            ('Alert Bell Icon', 'class="alert-bell"'),
+            ('Notification Panel', 'class="notification-panel"'),
+            ('Push Notification Styles', 'class="push-notification"'),
+            ('Alert Badge', 'class="alert-badge"'),
+            ('Notification Controls', 'markAllAsRead()'),
+            ('Push Notification Function', 'showPushNotification'),
+            ('Alert System Initialization', 'initializeAlertSystem'),
+            ('Notification Types (Critical)', 'type: \'critical\''),
+            ('Notification Types (Warning)', 'type: \'warning\''),
+            ('Notification Types (Info)', 'type: \'info\''),
+            ('Interactive Actions', 'performNotificationAction'),
+            ('Time Formatting', 'getTimeAgo'),
+            ('Auto Alert Generation', 'generateRandomAlert'),
+            ('Panel Toggle', 'toggleNotificationPanel'),
+        ]
+        
+        for name, pattern in checks:
+            if pattern in content:
+                print(f"✅ {name}")
+            else:
+                print(f"❌ {name}")
+        
+        print(f"\n📊 Feature Implementation Status:")
+        passed = sum(1 for _, pattern in checks if pattern in content)
+        total = len(checks)
+        print(f"✅ {passed}/{total} features implemented ({(passed/total)*100:.1f}%)")
+        
+        if passed == total:
+            print("🎉 All alert system features are properly implemented!")
+            return True
+        else:
+            print(f"⚠️ {total-passed} features need attention")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error validating features: {e}")
+        return False
 
 if __name__ == "__main__":
-    print("🚨 CTI-sHARE ALERT SYSTEM & PUSH NOTIFICATIONS")
-    print("=" * 70)
-    print("Testing comprehensive alert system with:")
-    print("🔔 Real-time Push Notifications")
-    print("🔊 Sound Alert System") 
-    print("📊 Smart Monitoring Integration")
-    print("🎯 Interactive Alert Management")
-    print("📱 Mobile-responsive Design")
-    print("=" * 70)
+    print("🔔 CTI-sHARE Alert System Test Suite")
+    print("=" * 50)
     
-    # Run tests
-    if test_alert_system():
-        demonstrate_alert_system()
-        print("\n🚀 STARTING DASHBOARD WITH ALERT SYSTEM...")
-        start_dashboard_with_alerts()
+    # Validate implementation
+    validation_passed = validate_alert_features()
+    
+    if validation_passed:
+        print("\n✅ Validation passed! Starting interactive test...")
+        test_alert_system()
     else:
-        print("\n❌ Tests failed - please fix issues before starting dashboard")
+        print("\n❌ Validation failed! Please check implementation.")
         sys.exit(1)

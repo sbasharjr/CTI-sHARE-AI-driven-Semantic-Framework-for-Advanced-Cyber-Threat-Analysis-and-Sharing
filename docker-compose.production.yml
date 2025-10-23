@@ -1,0 +1,68 @@
+# Production Docker Compose for CTI-sHARE Dashboard
+version: '3.8'
+
+services:
+  cti-share-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: cti-share-dashboard-prod
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - PYTHONPATH=/app/src
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/dashboard/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - dashboard_logs:/app/logs
+    networks:
+      - cti-share-network
+
+  # Optional: Redis for caching and real-time features
+  redis:
+    image: redis:7-alpine
+    container_name: cti-share-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - cti-share-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: cti-share-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # SSL certificates
+    depends_on:
+      - cti-share-dashboard
+    restart: unless-stopped
+    networks:
+      - cti-share-network
+
+volumes:
+  dashboard_logs:
+  redis_data:
+
+networks:
+  cti-share-network:
+    driver: bridge
