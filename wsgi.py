@@ -5,6 +5,7 @@ Production WSGI Application for CTI-sHARE Dashboard
 
 import os
 import sys
+import json
 from pathlib import Path
 
 # Get the directory where this file is located
@@ -84,11 +85,41 @@ def create_app():
             }
         ]
         
-        # Add sample threats to dashboard
-        for threat in sample_threats:
-            dashboard.add_threat(threat)
-        
-        print("✅ CTI-sHARE Dashboard initialized with sample threat data")
+        # Load live threat data if available
+        live_data_file = current_dir / 'live_threat_data.json'
+        if live_data_file.exists():
+            try:
+                with open(live_data_file, 'r') as f:
+                    live_threats = json.load(f)
+                
+                print(f"📥 Loading {len(live_threats)} live threats from file...")
+                for threat in live_threats:
+                    dashboard.add_threat(threat)
+                
+                print(f"✅ CTI-sHARE Dashboard initialized with {len(live_threats)} live threats")
+            except Exception as e:
+                print(f"⚠️ Error loading live threat data: {e}")
+                # Fallback to sample data
+                for threat in sample_threats:
+                    dashboard.add_threat(threat)
+                print("✅ CTI-sHARE Dashboard initialized with sample threat data")
+        else:
+            # Generate live threat data
+            try:
+                from initialize_live_threat_data import initialize_dashboard_with_live_data
+                print("🔄 Generating fresh live threat data...")
+                live_threats = initialize_dashboard_with_live_data()
+                
+                for threat in live_threats:
+                    dashboard.add_threat(threat)
+                
+                print(f"✅ CTI-sHARE Dashboard initialized with {len(live_threats)} fresh live threats")
+            except Exception as e:
+                print(f"⚠️ Error generating live threat data: {e}")
+                # Fallback to sample data
+                for threat in sample_threats:
+                    dashboard.add_threat(threat)
+                print("✅ CTI-sHARE Dashboard initialized with sample threat data")
         
         return dashboard.app
         
