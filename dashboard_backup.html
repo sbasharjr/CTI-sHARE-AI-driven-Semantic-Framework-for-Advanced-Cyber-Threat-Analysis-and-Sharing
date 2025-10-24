@@ -85,8 +85,8 @@
             position: absolute;
             top: 60px;
             right: 0;
-            width: 420px;
-            max-height: 650px;
+            width: 380px;
+            max-height: 500px;
             background: white;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
@@ -96,8 +96,6 @@
             visibility: hidden;
             transition: all 0.3s ease;
             z-index: 10000;
-            display: flex;
-            flex-direction: column;
         }
         
         .notification-panel.show {
@@ -316,140 +314,6 @@
             display: flex;
             gap: 8px;
             margin-top: 8px;
-        }
-
-        /* Enhanced Security Alerts Panel Styles */
-        .notification-header .header-main {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .notification-header h3 {
-            margin: 0;
-            font-size: 16px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .alert-stats {
-            display: flex;
-            gap: 6px;
-        }
-
-        .stat-badge {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 2px 8px;
-            font-size: 11px;
-            font-weight: 600;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .stat-badge.critical {
-            background: #fee;
-            color: #dc3545;
-            border: 1px solid #fcc;
-        }
-
-        .stat-badge.warning {
-            background: #fff8e1;
-            color: #f57c00;
-            border: 1px solid #ffecc7;
-        }
-
-        .stat-badge.info {
-            background: #e3f2fd;
-            color: #1976d2;
-            border: 1px solid #bbdefb;
-        }
-
-        .live-status {
-            font-size: 11px;
-            font-weight: 600;
-            color: #dc3545;
-            margin-bottom: 10px;
-            padding: 4px 8px;
-            background: rgba(220, 53, 69, 0.1);
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .alert-filters {
-            display: flex;
-            gap: 4px;
-            padding: 12px 15px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            overflow-x: auto;
-        }
-
-        .filter-btn {
-            padding: 6px 12px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 20px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            font-weight: 500;
-        }
-
-        .filter-btn:hover {
-            background: #e9ecef;
-        }
-
-        .filter-btn.active {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #6c757d;
-        }
-
-        .empty-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-
-        .empty-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #495057;
-        }
-
-        .empty-message {
-            font-size: 12px;
-            line-height: 1.4;
-        }
-
-        .alert-summary {
-            padding: 10px 15px;
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-            margin-top: auto;
-        }
-
-        .summary-stats {
-            font-size: 11px;
-            color: #6c757d;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .panel-controls .close-btn {
-            font-size: 16px;
-            font-weight: bold;
         }
         
         .notification-action {
@@ -1144,67 +1008,6 @@
                 </div>
             </div>
         </div>
- <!-- Active Incidents and Blocked Attacks Section -->
-        <div class="card" style="margin-top: 20px;">
-            <div class="chart-header">
-                <h2>🔍 Security Operations Center</h2>
-                <div class="chart-controls">
-                    <button onclick="exportSecurityOperationsCenter()" style="background: linear-gradient(135deg, #e83e8c 0%, #d62598 100%); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 14px;">
-                        📊 Export SOC Report
-                    </button>
-                </div>
-            </div>
-            <div class="grid-2" style="margin-top: 20px;">
-                <!-- Active Incidents -->
-                <div>
-                    <div class="chart-header">
-                        <h3>🚨 Active Incidents</h3>
-                        <div class="chart-controls">
-                            <button class="live-btn" id="incidentsLiveBtn" onclick="toggleIncidentsLiveMode()" 
-                                    style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                                🔴 Start Live Mode
-                            </button>
-                            <button onclick="exportActiveIncidents()" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-left: 5px;">
-                                📄 Export
-                            </button>
-                        </div>
-                    </div>
-                    <div id="activeIncidentsContainer" style="background: white; border-radius: 10px; padding: 15px; max-height: 400px; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                        <div id="activeIncidentsList">
-                            <!-- Dynamic incidents will be populated here -->
-                        </div>
-                    </div>
-                    <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
-                        Total Active: <span id="activeIncidentsCount" style="font-weight: bold; color: #dc3545;">0</span>
-                    </div>
-                </div>
-                
-                <!-- Blocked Attacks -->
-                <div>
-                    <div class="chart-header">
-                        <h3>🛡️ Blocked Attacks</h3>
-                        <div class="chart-controls">
-                            <button class="live-btn" id="blockedAttacksLiveBtn" onclick="toggleBlockedAttacksLiveMode()" 
-                                    style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                                🔴 Start Live Mode
-                            </button>
-                            <button onclick="exportBlockedAttacks()" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-left: 5px;">
-                                📄 Export
-                            </button>
-                        </div>
-                    </div>
-                    <div id="blockedAttacksContainer" style="background: white; border-radius: 10px; padding: 15px; max-height: 400px; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                        <div id="blockedAttacksList">
-                            <!-- Dynamic blocked attacks will be populated here -->
-                        </div>
-                    </div>
-                    <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
-                        Blocked Today: <span id="blockedAttacksCount" style="font-weight: bold; color: #28a745;">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
         <!-- Active Threat Intelligence Feeds -->
         <div class="card">
@@ -1297,7 +1100,28 @@
             <button onclick="submitThreat()">Submit Threat</button>
         </div>
 
-
+        <div class="card">
+            <h2>� Live Information Dashboard</h2>
+            <div id="liveInfoDashboard" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 10px;">
+                <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #ff6b6b;" id="liveAttackVectors">0</div>
+                    <div style="font-size: 12px; color: #666;">Attack Vectors Updates</div>
+                </div>
+                <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #17a2b8;" id="liveGeographic">0</div>
+                    <div style="font-size: 12px; color: #666;">Geographic Updates</div>
+                </div>
+                <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #6c757d;" id="liveHourlyActivity">0</div>
+                    <div style="font-size: 12px; color: #666;">Hourly Activity Updates</div>
+                </div>
+            </div>
+            <div style="text-align: center; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px; margin-bottom: 15px;">
+                <span style="font-weight: bold; color: #333;">Live Charts Status: </span>
+                <span id="liveChartsStatus" style="color: #dc3545; font-weight: bold;">🔴 ACTIVE</span>
+                <span style="margin-left: 20px; font-size: 12px; color: #666;">Updates every 3-7 seconds</span>
+            </div>
+        </div>
 
         <div class="card">
             <h2>�🔔 Alert System Testing</h2>
@@ -1318,20 +1142,71 @@
                 <button onclick="toggleLiveUpdates()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 14px;">
                     🔄 Toggle Notifications
                 </button>
-
+                <button onclick="toggleLiveCharts()" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                    📊 Toggle Charts Live
+                </button>
             </div>
             <p style="margin-top: 10px; font-size: 12px; color: #999;">
                 • Critical alerts trigger push notifications<br>
                 • Click the bell icon (🔔) in the header to view all alerts<br>
                 • 📡 <strong>Live Updates:</strong> Real-time alerts generated every 8-60 seconds<br>
                 • 🔄 <strong>Toggle Notifications:</strong> Start/stop live notification monitoring<br>
-
+                • 📊 <strong>Toggle Charts Live:</strong> Start/stop live chart data updates<br>
                 • Live information overlays appear on all active charts<br>
                 • Live stats are displayed at the bottom of notification panel
             </p>
         </div>
         
-        <script>
+        <!-- Active Incidents and Blocked Attacks Section -->
+        <div class="card" style="margin-top: 20px;">
+            <h2>🔍 Security Operations Center</h2>
+            <div class="grid-2" style="margin-top: 20px;">
+                <!-- Active Incidents -->
+                <div>
+                    <div class="chart-header">
+                        <h3>🚨 Active Incidents</h3>
+                        <div class="chart-controls">
+                            <button class="live-btn" id="incidentsLiveBtn" onclick="toggleIncidentsLiveMode()" 
+                                    style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                🔴 Start Live Mode
+                            </button>
+                        </div>
+                    </div>
+                    <div id="activeIncidentsContainer" style="background: white; border-radius: 10px; padding: 15px; max-height: 400px; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                        <div id="activeIncidentsList">
+                            <!-- Dynamic incidents will be populated here -->
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+                        Total Active: <span id="activeIncidentsCount" style="font-weight: bold; color: #dc3545;">0</span>
+                    </div>
+                </div>
+                
+                <!-- Blocked Attacks -->
+                <div>
+                    <div class="chart-header">
+                        <h3>🛡️ Blocked Attacks</h3>
+                        <div class="chart-controls">
+                            <button class="live-btn" id="blockedAttacksLiveBtn" onclick="toggleBlockedAttacksLiveMode()" 
+                                    style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                🔴 Start Live Mode
+                            </button>
+                        </div>
+                    </div>
+                    <div id="blockedAttacksContainer" style="background: white; border-radius: 10px; padding: 15px; max-height: 400px; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                        <div id="blockedAttacksList">
+                            <!-- Dynamic blocked attacks will be populated here -->
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+                        Blocked Today: <span id="blockedAttacksCount" style="font-weight: bold; color: #28a745;">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
         // Register Chart.js plugins
         Chart.register(ChartDataLabels);
         
@@ -1340,7 +1215,7 @@
         let isRealtimeActive = false;
         
         // Chart instances
-        let categoriesChart, severityChart, severityTimeSeriesChart;
+        let categoriesChart, severityChart, severityTimeSeriesChart, attackVectorsChart, geoDistributionChart, hourlyActivityChart;
         // Charts removed: feedStatusChart, iocTypesChart
         let severityRealtimeInterval, advancedRealtimeInterval, systemHealthInterval, threatFeedsInterval;
         let isSeverityRealtimeActive = false;
@@ -2718,7 +2593,14 @@
             console.log('🔴 Live charts information stopped');
         }
 
-
+        function toggleLiveCharts() {
+            if (isLiveChartsActive) {
+                stopLiveChartsInformation();
+            } else {
+                isLiveChartsActive = true;
+                startLiveChartsInformation();
+            }
+        }
 
         // Update all live charts with real-time information from backend APIs
         function updateAllLiveCharts() {
@@ -3087,13 +2969,46 @@
                 headerStatus.className = (isLiveChartsActive || isLiveUpdatesActive) ? 'realtime-status realtime-active' : 'realtime-status realtime-inactive';
             }
             
-
+            // Update live information dashboard counters
+            updateLiveInfoDashboard();
             
             // Console log for monitoring
             console.log(`🔴 Live Charts Update Complete - System:${chartLiveStats.systemPerformanceUpdates} Resource:${chartLiveStats.resourceDistributionUpdates} Attack:${chartLiveStats.attackVectorsUpdates} Geo:${chartLiveStats.geographicUpdates} Hourly:${chartLiveStats.hourlyActivityUpdates}`);
         }
 
-
+        function updateLiveInfoDashboard() {
+            // Update live counters in dashboard
+            const elements = [
+                { id: 'liveAttackVectors', value: chartLiveStats.attackVectorsUpdates },
+                { id: 'liveGeographic', value: chartLiveStats.geographicUpdates },
+                { id: 'liveHourlyActivity', value: chartLiveStats.hourlyActivityUpdates }
+            ];
+            
+            elements.forEach(item => {
+                const el = document.getElementById(item.id);
+                if (el) {
+                    el.textContent = item.value;
+                    
+                    // Add pulse animation on update
+                    el.style.animation = 'pulse 0.5s ease-in-out';
+                    setTimeout(() => {
+                        el.style.animation = '';
+                    }, 500);
+                }
+            });
+            
+            // Update status indicator
+            const statusEl = document.getElementById('liveChartsStatus');
+            if (statusEl) {
+                if (isLiveChartsActive) {
+                    statusEl.innerHTML = '🔴 ACTIVE';
+                    statusEl.style.color = '#dc3545';
+                } else {
+                    statusEl.innerHTML = '⚫ PAUSED';
+                    statusEl.style.color = '#6c757d';
+                }
+            }
+        }
 
         // ================================
         // LIVE NOTIFICATION UPDATE SYSTEM
@@ -3524,38 +3439,26 @@
             });
         }
 
-        // Current filter for alerts
-        let currentAlertFilter = 'all';
-
-        // Enhanced notification list with filtering and statistics
+        // Enhanced notification list with live indicators
         function updateNotificationList() {
             const notificationList = document.getElementById('notificationList');
             const noNotifications = document.getElementById('noNotifications');
             
-            // Update statistics
-            updateAlertStatistics();
-            
-            // Filter notifications based on current filter
-            const filteredNotifications = filterNotificationsByType(notifications, currentAlertFilter);
-            
-            if (filteredNotifications.length === 0) {
+            if (notifications.length === 0) {
                 noNotifications.style.display = 'block';
-                const emptyStatusText = document.getElementById('emptyStatusText');
-                if (emptyStatusText) {
-                    if (currentAlertFilter === 'all') {
-                        emptyStatusText.textContent = isLiveUpdatesActive ? 
-                            'Live monitoring active - Waiting for security events...' : 
-                            'Live monitoring paused - No active monitoring';
-                    } else {
-                        emptyStatusText.textContent = `No ${currentAlertFilter} alerts found`;
-                    }
-                }
+                noNotifications.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #999;">
+                        ${isLiveUpdatesActive ? 
+                            '🔴 Live monitoring active<br>Waiting for security alerts...' : 
+                            '⚫ Live updates paused<br>No active monitoring'}
+                    </div>
+                `;
                 return;
             }
             
             noNotifications.style.display = 'none';
             
-            notificationList.innerHTML = filteredNotifications.map(notification => {
+            notificationList.innerHTML = notifications.map(notification => {
                 const timeAgo = getTimeAgo(notification.time);
                 const iconSvg = getIconForType(notification.type);
                 
@@ -3595,73 +3498,6 @@
                     </div>
                 `;
             }).join('');
-        }
-
-        // Filter notifications by type
-        function filterNotificationsByType(notifs, filterType) {
-            if (filterType === 'all') {
-                return notifs;
-            }
-            return notifs.filter(notif => notif.type === filterType);
-        }
-
-        // Update alert statistics in the panel
-        function updateAlertStatistics() {
-            const criticalCount = notifications.filter(n => n.type === 'critical').length;
-            const warningCount = notifications.filter(n => n.type === 'warning').length;
-            const infoCount = notifications.filter(n => n.type === 'info').length;
-            const totalCount = notifications.length;
-
-            // Update header stats badges
-            const criticalBadge = document.getElementById('criticalCount');
-            const warningBadge = document.getElementById('warningCount');
-            const infoBadge = document.getElementById('infoCount');
-
-            if (criticalBadge) criticalBadge.textContent = criticalCount;
-            if (warningBadge) warningBadge.textContent = warningCount;
-            if (infoBadge) infoBadge.textContent = infoCount;
-
-            // Update filter button counts
-            const totalSpan = document.getElementById('totalAlerts');
-            const criticalSpan = document.getElementById('criticalAlerts');
-            const warningSpan = document.getElementById('warningAlerts');
-            const infoSpan = document.getElementById('infoAlerts');
-
-            if (totalSpan) totalSpan.textContent = totalCount;
-            if (criticalSpan) criticalSpan.textContent = criticalCount;
-            if (warningSpan) warningSpan.textContent = warningCount;
-            if (infoSpan) infoSpan.textContent = infoCount;
-
-            // Update summary footer
-            const todayCountSpan = document.getElementById('todayCount');
-            const lastUpdateSpan = document.getElementById('lastUpdateTime');
-            
-            if (todayCountSpan) todayCountSpan.textContent = totalCount;
-            if (lastUpdateSpan && lastUpdateTime) {
-                lastUpdateSpan.textContent = getTimeAgo(lastUpdateTime);
-            }
-
-            // Update live status
-            const liveStatus = document.getElementById('liveStatus');
-            if (liveStatus) {
-                liveStatus.textContent = isLiveUpdatesActive ? '🔴 LIVE MONITORING' : '⚫ MONITORING PAUSED';
-                liveStatus.style.color = isLiveUpdatesActive ? '#dc3545' : '#6c757d';
-                liveStatus.style.background = isLiveUpdatesActive ? 'rgba(220, 53, 69, 0.1)' : 'rgba(108, 117, 125, 0.1)';
-            }
-        }
-
-        // Filter alerts by type
-        function filterAlerts(type) {
-            currentAlertFilter = type;
-            
-            // Update filter button states
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById(`filter${type.charAt(0).toUpperCase() + type.slice(1)}`).classList.add('active');
-            
-            // Update the notification list
-            updateNotificationList();
         }
 
         // Ensure notification system has absolute priority over ALL elements
@@ -3813,7 +3649,46 @@
             }
         }
 
-
+        function updateNotificationList() {
+            const notificationList = document.getElementById('notificationList');
+            const noNotifications = document.getElementById('noNotifications');
+            
+            if (notifications.length === 0) {
+                noNotifications.style.display = 'block';
+                return;
+            }
+            
+            noNotifications.style.display = 'none';
+            
+            notificationList.innerHTML = notifications.map(notification => {
+                const timeAgo = getTimeAgo(notification.time);
+                const iconSvg = getIconForType(notification.type);
+                
+                const actionsHtml = notification.actions.map(action => 
+                    `<button class="notification-action ${action.action === 'investigate' || action.action === 'details' ? 'primary' : ''}" 
+                             onclick="performNotificationAction('${notification.id}', '${action.action}', event)">
+                        ${action.label}
+                    </button>`
+                ).join('');
+                
+                return `
+                    <div class="notification-item ${notification.read ? '' : 'unread'} ${notification.type}" 
+                         onclick="markAsRead(${notification.id})">
+                        <div class="notification-content">
+                            <div class="notification-icon">${iconSvg}</div>
+                            <div class="notification-body">
+                                <div class="notification-title">${notification.title}</div>
+                                <div class="notification-message">${notification.message}</div>
+                                <div class="notification-time">${timeAgo}</div>
+                                <div class="notification-actions" onclick="event.stopPropagation()">
+                                    ${actionsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
 
         function getIconForType(type) {
             const icons = {
@@ -4705,226 +4580,6 @@
             }
         }
 
-        // ================================
-        // SECURITY OPERATIONS CENTER EXPORT FUNCTIONS
-        // ================================
-
-        function exportActiveIncidents() {
-            const incidentsList = document.getElementById('activeIncidentsList');
-            const incidentsCount = document.getElementById('activeIncidentsCount').textContent;
-            
-            if (!incidentsList || incidentsList.children.length === 0) {
-                alert('📋 No active incidents to export');
-                return;
-            }
-            
-            let exportData = [];
-            exportData.push('# 🚨 ACTIVE INCIDENTS REPORT');
-            exportData.push('=' * 60);
-            exportData.push(`Generated: ${new Date().toLocaleString()}`);
-            exportData.push(`Total Active Incidents: ${incidentsCount}`);
-            exportData.push('');
-            
-            // Extract incident data from DOM elements
-            Array.from(incidentsList.children).forEach((incident, index) => {
-                const incidentText = incident.textContent.trim();
-                const lines = incidentText.split('\n').filter(line => line.trim());
-                
-                exportData.push(`## Incident ${index + 1}`);
-                exportData.push(`Type: ${lines[0] || 'Unknown'}`);
-                if (lines[1]) exportData.push(`Details: ${lines[1]}`);
-                if (lines[2]) exportData.push(`Reference: ${lines[2]}`);
-                exportData.push('');
-            });
-            
-            exportData.push('---');
-            exportData.push('Report generated by CTI-sHARE Security Operations Center');
-            
-            downloadTextFile('active_incidents_report.txt', exportData.join('\n'));
-        }
-
-        function exportBlockedAttacks() {
-            const attacksList = document.getElementById('blockedAttacksList');
-            const attacksCount = document.getElementById('blockedAttacksCount').textContent;
-            
-            if (!attacksList || attacksList.children.length === 0) {
-                alert('📋 No blocked attacks to export');
-                return;
-            }
-            
-            let exportData = [];
-            exportData.push('# 🛡️ BLOCKED ATTACKS REPORT');
-            exportData.push('=' * 60);
-            exportData.push(`Generated: ${new Date().toLocaleString()}`);
-            exportData.push(`Total Blocked Today: ${attacksCount}`);
-            exportData.push('');
-            
-            // Extract attack data from DOM elements
-            Array.from(attacksList.children).forEach((attack, index) => {
-                const attackText = attack.textContent.trim();
-                const lines = attackText.split('\n').filter(line => line.trim());
-                
-                exportData.push(`## Blocked Attack ${index + 1}`);
-                exportData.push(`Type: ${lines[0] || 'Unknown'}`);
-                if (lines[1]) exportData.push(`Source: ${lines[1]}`);
-                if (lines[2]) exportData.push(`Timestamp: ${lines[2]}`);
-                exportData.push('');
-            });
-            
-            exportData.push('---');
-            exportData.push('Report generated by CTI-sHARE Security Operations Center');
-            
-            downloadTextFile('blocked_attacks_report.txt', exportData.join('\n'));
-        }
-
-        function exportSecurityOperationsCenter() {
-            const incidentsCount = document.getElementById('activeIncidentsCount').textContent;
-            const attacksCount = document.getElementById('blockedAttacksCount').textContent;
-            const incidentsList = document.getElementById('activeIncidentsList');
-            const attacksList = document.getElementById('blockedAttacksList');
-            
-            let exportData = [];
-            
-            // Header
-            exportData.push('# 🔍 SECURITY OPERATIONS CENTER REPORT');
-            exportData.push('=' * 80);
-            exportData.push(`Generated: ${new Date().toLocaleString()}`);
-            exportData.push(`Report Period: Real-time Security Operations Status`);
-            exportData.push('');
-            
-            // Executive Summary
-            exportData.push('## 📊 EXECUTIVE SUMMARY');
-            exportData.push('-' * 40);
-            exportData.push(`Active Security Incidents: ${incidentsCount}`);
-            exportData.push(`Blocked Attacks Today: ${attacksCount}`);
-            exportData.push('');
-            
-            // Active Incidents Section
-            exportData.push('## 🚨 ACTIVE INCIDENTS');
-            exportData.push('-' * 40);
-            if (incidentsList && incidentsList.children.length > 0) {
-                Array.from(incidentsList.children).forEach((incident, index) => {
-                    const incidentText = incident.textContent.trim();
-                    const lines = incidentText.split('\n').filter(line => line.trim());
-                    
-                    exportData.push(`${index + 1}. ${lines[0] || 'Unknown Incident'}`);
-                    if (lines[1]) exportData.push(`   Details: ${lines[1]}`);
-                    if (lines[2]) exportData.push(`   Reference: ${lines[2]}`);
-                    exportData.push('');
-                });
-            } else {
-                exportData.push('✅ No active incidents detected');
-                exportData.push('');
-            }
-            
-            // Blocked Attacks Section
-            exportData.push('## 🛡️ BLOCKED ATTACKS');
-            exportData.push('-' * 40);
-            if (attacksList && attacksList.children.length > 0) {
-                const recentAttacks = Array.from(attacksList.children).slice(0, 10); // Show last 10
-                recentAttacks.forEach((attack, index) => {
-                    const attackText = attack.textContent.trim();
-                    const lines = attackText.split('\n').filter(line => line.trim());
-                    
-                    exportData.push(`${index + 1}. ${lines[0] || 'Unknown Attack'}`);
-                    if (lines[1]) exportData.push(`   Source: ${lines[1]}`);
-                    if (lines[2]) exportData.push(`   Action: ${lines[2]}`);
-                    exportData.push('');
-                });
-                
-                if (attacksList.children.length > 10) {
-                    exportData.push(`... and ${attacksList.children.length - 10} more blocked attacks`);
-                    exportData.push('');
-                }
-            } else {
-                exportData.push('✅ No blocked attacks recorded today');
-                exportData.push('');
-            }
-            
-            // Security Posture Assessment
-            exportData.push('## 🎯 SECURITY POSTURE ASSESSMENT');
-            exportData.push('-' * 40);
-            const incidentCount = parseInt(incidentsCount) || 0;
-            const attackCount = parseInt(attacksCount) || 0;
-            
-            if (incidentCount === 0 && attackCount > 10) {
-                exportData.push('Status: 🟢 GOOD - Active defense systems blocking threats effectively');
-            } else if (incidentCount < 3 && attackCount > 5) {
-                exportData.push('Status: 🟡 MODERATE - Some incidents detected, defense systems operational');
-            } else if (incidentCount >= 3) {
-                exportData.push('Status: 🔴 ELEVATED - Multiple active incidents require attention');
-            } else {
-                exportData.push('Status: 🟢 NORMAL - Security operations within expected parameters');
-            }
-            exportData.push('');
-            
-            // Recommendations
-            exportData.push('## 💡 RECOMMENDATIONS');
-            exportData.push('-' * 40);
-            if (incidentCount > 0) {
-                exportData.push('• Review and prioritize active incident response');
-                exportData.push('• Ensure incident escalation procedures are followed');
-            }
-            if (attackCount > 20) {
-                exportData.push('• Consider threat intelligence analysis of attack patterns');
-                exportData.push('• Review and update security rules based on attack trends');
-            }
-            if (incidentCount === 0 && attackCount < 5) {
-                exportData.push('• Maintain current security posture');
-                exportData.push('• Continue monitoring for emerging threats');
-            }
-            exportData.push('');
-            
-            // Footer
-            exportData.push('=' * 80);
-            exportData.push('Report generated by CTI-sHARE Security Operations Center');
-            exportData.push('🔗 Advanced Cyber Threat Intelligence and Sharing Framework');
-            
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-            downloadTextFile(`security_operations_report_${timestamp}.txt`, exportData.join('\n'));
-        }
-
-        function downloadTextFile(filename, content) {
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            
-            link.href = url;
-            link.download = filename;
-            link.style.display = 'none';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            window.URL.revokeObjectURL(url);
-            
-            // Show success notification
-            console.log(`📄 Successfully exported: ${filename}`);
-            
-            // Optional: Show a brief success message
-            const successMsg = document.createElement('div');
-            successMsg.textContent = `✅ Export completed: ${filename}`;
-            successMsg.style.cssText = `
-                position: fixed; 
-                top: 20px; 
-                right: 20px; 
-                background: #28a745; 
-                color: white; 
-                padding: 10px 15px; 
-                border-radius: 5px; 
-                z-index: 10000;
-                font-weight: bold;
-            `;
-            document.body.appendChild(successMsg);
-            
-            setTimeout(() => {
-                if (successMsg.parentNode) {
-                    successMsg.parentNode.removeChild(successMsg);
-                }
-            }, 3000);
-        }
-
         // Cleanup on page unload
         window.addEventListener('beforeunload', stopAutoRefresh);
     </script>
@@ -4934,71 +4589,22 @@
         <!-- Notification Backdrop -->
         <div class="notification-backdrop" id="notificationBackdrop" onclick="closeNotificationPanel()"></div>
         
-        <!-- Security Alerts Notification Panel -->
+        <!-- Notification Panel -->
         <div class="notification-panel" id="notificationPanel">
             <div class="notification-header">
-                <div class="header-main">
-                    <h3>🛡️ Security Alerts Center</h3>
-                    <div class="alert-stats" id="alertStats">
-                        <span class="stat-badge critical" id="criticalCount">0</span>
-                        <span class="stat-badge warning" id="warningCount">0</span>
-                        <span class="stat-badge info" id="infoCount">0</span>
-                    </div>
-                </div>
-                <div class="live-status" id="liveStatus">
-                    🔴 LIVE MONITORING
-                </div>
+                <h3>🔔 Security Alerts 🔴 LIVE</h3>
                 <div class="panel-controls">
-                    <button class="control-btn" id="liveToggleBtn" onclick="toggleLiveUpdates()" title="Toggle live monitoring">
+                    <button class="control-btn" id="liveToggleBtn" onclick="toggleLiveUpdates()">
                         📡 Live
                     </button>
-                    <button class="control-btn" onclick="markAllAsRead()" title="Mark all alerts as read">
-                        ✓ Read All
-                    </button>
-                    <button class="control-btn" onclick="clearAllNotifications()" title="Clear all alerts">
-                        🗑️ Clear
-                    </button>
-                    <button class="control-btn close-btn" onclick="toggleNotificationPanel()" title="Close panel">
-                        ×
-                    </button>
+                    <button class="control-btn" onclick="markAllAsRead()">Mark All Read</button>
+                    <button class="control-btn" onclick="clearAllNotifications()">Clear All</button>
+                    <button class="control-btn" onclick="toggleNotificationPanel()">×</button>
                 </div>
             </div>
-            
-            <!-- Alert Filters -->
-            <div class="alert-filters">
-                <button class="filter-btn active" onclick="filterAlerts('all')" id="filterAll">
-                    📋 All Alerts (<span id="totalAlerts">0</span>)
-                </button>
-                <button class="filter-btn" onclick="filterAlerts('critical')" id="filterCritical">
-                    🚨 Critical (<span id="criticalAlerts">0</span>)
-                </button>
-                <button class="filter-btn" onclick="filterAlerts('warning')" id="filterWarning">
-                    ⚠️ Warning (<span id="warningAlerts">0</span>)
-                </button>
-                <button class="filter-btn" onclick="filterAlerts('info')" id="filterInfo">
-                    ℹ️ Info (<span id="infoAlerts">0</span>)
-                </button>
-            </div>
-            
-            <!-- Security Alerts List -->
             <div class="notification-list" id="notificationList">
                 <div class="no-notifications" id="noNotifications">
-                    <div class="empty-state">
-                        <div class="empty-icon">🛡️</div>
-                        <div class="empty-title">No Security Alerts</div>
-                        <div class="empty-message">
-                            <span id="emptyStatusText">Live monitoring active - Waiting for security events...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Alert Summary Footer -->
-            <div class="alert-summary" id="alertSummary">
-                <div class="summary-stats">
-                    <span>Last Update: <span id="lastUpdateTime">Never</span></span>
-                    <span>•</span>
-                    <span>Total Today: <span id="todayCount">0</span></span>
+                    No active alerts
                 </div>
             </div>
         </div>
