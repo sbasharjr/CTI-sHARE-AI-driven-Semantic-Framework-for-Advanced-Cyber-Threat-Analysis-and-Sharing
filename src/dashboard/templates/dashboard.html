@@ -934,6 +934,85 @@
             </div>
         </div>
 
+        <!-- Enhanced MISP Integration Panel -->
+        <div class="card">
+            <h2>🔗 MISP Framework Integration</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>🌐 MISP Server Configuration</h3>
+                    <div style="margin-bottom: 15px;">
+                        <label><strong>MISP Server URL:</strong></label>
+                        <input type="text" id="mispServerUrl" placeholder="https://your-misp-server.com" style="width: 100%; margin: 5px 0;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label><strong>API Key:</strong></label>
+                        <input type="password" id="mispApiKey" placeholder="Your MISP API key" style="width: 100%; margin: 5px 0;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label><strong>Organization:</strong></label>
+                        <input type="text" id="mispOrganization" placeholder="Your organization name" style="width: 100%; margin: 5px 0;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <button onclick="testMispConnection()" id="testMispBtn" style="background: #17a2b8;">🔍 Test Connection</button>
+                        <button onclick="saveMispConfig()" id="saveMispBtn" style="background: #28a745;">💾 Save Config</button>
+                    </div>
+                </div>
+                <div>
+                    <h3>📊 MISP Data Operations</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button onclick="importMispEvents()" id="importEventsBtn" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);">
+                            📥 Import Events
+                        </button>
+                        <button onclick="importMispAttributes()" id="importAttributesBtn" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                            🔢 Import Attributes
+                        </button>
+                        <button onclick="importMispIOCs()" id="importIOCsBtn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            🎯 Import IOCs
+                        </button>
+                        <button onclick="exportToMisp()" id="exportMispBtn" style="background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);">
+                            📤 Export to MISP
+                        </button>
+                        <button onclick="syncMispData()" id="syncMispBtn" style="background: linear-gradient(135deg, #e83e8c 0%, #d62598 100%);">
+                            🔄 Sync Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MISP Statistics -->
+            <div class="grid-3" style="margin-top: 20px;">
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">MISP Events</div>
+                        <div class="metric-value" id="mispEventsCount">0</div>
+                    </div>
+                    <div class="metric-trend trend-up" id="mispEventsTrend">+0 today</div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">MISP Attributes</div>
+                        <div class="metric-value" id="mispAttributesCount">0</div>
+                    </div>
+                    <div class="metric-trend trend-stable" id="mispAttributesTrend">stable</div>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <div class="stat-label">MISP IOCs</div>
+                        <div class="metric-value" id="mispIOCsCount">0</div>
+                    </div>
+                    <div class="metric-trend trend-up" id="mispIOCsTrend">+0 synced</div>
+                </div>
+            </div>
+            
+            <!-- MISP Connection Status -->
+            <div id="mispStatus" class="operation-status" style="display: none;">
+                <div id="mispStatusMessage">Ready to connect...</div>
+                <div class="progress-bar">
+                    <div id="mispProgress" class="progress" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="card" id="importDialog" style="display: none;">
             <h2>📥 Import Threat Intelligence</h2>
             <div style="margin-bottom: 15px;">
@@ -4168,6 +4247,524 @@
             document.getElementById('importResult').style.display = 'none';
         }
 
+        // ===================================
+        // ENHANCED MISP FRAMEWORK INTEGRATION
+        // ===================================
+        
+        // MISP Configuration Management
+        let mispConfig = {
+            serverUrl: '',
+            apiKey: '',
+            organization: '',
+            connected: false
+        };
+
+        function showMispStatus(message, progress = 0) {
+            const statusDiv = document.getElementById('mispStatus');
+            const statusMessage = document.getElementById('mispStatusMessage');
+            const progressBar = document.getElementById('mispProgress');
+            
+            statusMessage.textContent = message;
+            progressBar.style.width = progress + '%';
+            statusDiv.style.display = 'block';
+            
+            if (progress >= 100) {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function testMispConnection() {
+            const serverUrl = document.getElementById('mispServerUrl').value.trim();
+            const apiKey = document.getElementById('mispApiKey').value.trim();
+            const testBtn = document.getElementById('testMispBtn');
+            
+            if (!serverUrl || !apiKey) {
+                alert('Please enter both MISP server URL and API key');
+                return;
+            }
+            
+            testBtn.disabled = true;
+            testBtn.textContent = '🔄 Testing...';
+            showMispStatus('Testing MISP connection...', 30);
+            
+            // Simulate MISP connection test
+            fetch('/api/dashboard/misp/test-connection', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    server_url: serverUrl,
+                    api_key: apiKey
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMispStatus('Connection test completed!', 100);
+                
+                if (data.status === 'success') {
+                    testBtn.className = '';
+                    testBtn.style.background = '#28a745';
+                    testBtn.textContent = '✅ Connected';
+                    mispConfig.connected = true;
+                    
+                    // Update MISP statistics
+                    updateMispStatistics(data.stats);
+                    
+                    alert(`✅ MISP Connection Successful!\\nServer: ${data.server_info?.version || 'Unknown'}\\nOrganization: ${data.organization || 'Default'}`);
+                } else {
+                    testBtn.className = '';
+                    testBtn.style.background = '#dc3545';
+                    testBtn.textContent = '❌ Failed';
+                    mispConfig.connected = false;
+                    alert('❌ MISP Connection Failed: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('MISP connection error:', error);
+                showMispStatus('Connection failed!', 100);
+                testBtn.className = '';
+                testBtn.style.background = '#dc3545';
+                testBtn.textContent = '❌ Error';
+                mispConfig.connected = false;
+                alert('Connection error: ' + error.message);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    testBtn.disabled = false;
+                    testBtn.textContent = '🔍 Test Connection';
+                    testBtn.style.background = '#17a2b8';
+                }, 3000);
+            });
+        }
+
+        function saveMispConfig() {
+            const serverUrl = document.getElementById('mispServerUrl').value.trim();
+            const apiKey = document.getElementById('mispApiKey').value.trim();
+            const organization = document.getElementById('mispOrganization').value.trim();
+            const saveBtn = document.getElementById('saveMispBtn');
+            
+            if (!serverUrl || !apiKey) {
+                alert('Please enter at least server URL and API key');
+                return;
+            }
+            
+            mispConfig = {
+                serverUrl: serverUrl,
+                apiKey: apiKey,
+                organization: organization,
+                connected: mispConfig.connected
+            };
+            
+            // Save to localStorage for persistence
+            localStorage.setItem('mispConfig', JSON.stringify(mispConfig));
+            
+            saveBtn.style.background = '#28a745';
+            saveBtn.textContent = '✅ Saved';
+            
+            setTimeout(() => {
+                saveBtn.style.background = '#28a745';
+                saveBtn.textContent = '💾 Save Config';
+            }, 2000);
+            
+            showMispStatus('Configuration saved successfully!', 100);
+        }
+
+        function loadMispConfig() {
+            const saved = localStorage.getItem('mispConfig');
+            if (saved) {
+                mispConfig = JSON.parse(saved);
+                document.getElementById('mispServerUrl').value = mispConfig.serverUrl || '';
+                document.getElementById('mispApiKey').value = mispConfig.apiKey || '';
+                document.getElementById('mispOrganization').value = mispConfig.organization || '';
+            }
+        }
+
+        function updateMispStatistics(stats) {
+            if (stats) {
+                document.getElementById('mispEventsCount').textContent = stats.events || 0;
+                document.getElementById('mispAttributesCount').textContent = stats.attributes || 0;
+                document.getElementById('mispIOCsCount').textContent = stats.iocs || 0;
+                
+                // Update trends
+                const eventsTrend = document.getElementById('mispEventsTrend');
+                const attributesTrend = document.getElementById('mispAttributesTrend');
+                const iocsTrend = document.getElementById('mispIOCsTrend');
+                
+                eventsTrend.textContent = `+${stats.events_today || 0} today`;
+                attributesTrend.textContent = `+${stats.attributes_today || 0} today`;
+                iocsTrend.textContent = `+${stats.iocs_synced || 0} synced`;
+            }
+        }
+
+        function importMispEvents() {
+            if (!mispConfig.connected) {
+                alert('Please test and establish MISP connection first');
+                return;
+            }
+            
+            const importBtn = document.getElementById('importEventsBtn');
+            importBtn.disabled = true;
+            importBtn.textContent = '📥 Importing...';
+            showMispStatus('Importing MISP events...', 50);
+            
+            fetch('/api/dashboard/misp/import-events', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(mispConfig)
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMispStatus('Events import completed!', 100);
+                
+                if (data.status === 'success') {
+                    importBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    importBtn.textContent = `✅ Imported ${data.events_imported || 0}`;
+                    
+                    // Update statistics
+                    updateMispStatistics(data.updated_stats);
+                    
+                    // Add notification
+                    addNotification({
+                        id: Date.now(),
+                        type: 'info',
+                        title: 'MISP Events Imported',
+                        message: `Successfully imported ${data.events_imported || 0} events from MISP`,
+                        time: new Date(),
+                        read: false,
+                        isLive: true,
+                        source: 'MISP',
+                        actions: [
+                            { action: 'view', label: 'View Events' },
+                            { action: 'dismiss', label: 'Dismiss' }
+                        ]
+                    });
+                    
+                    alert(`✅ Successfully imported ${data.events_imported || 0} MISP events!`);
+                } else {
+                    importBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                    importBtn.textContent = '❌ Import Failed';
+                    alert('Import failed: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('MISP events import error:', error);
+                showMispStatus('Events import failed!', 100);
+                importBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                importBtn.textContent = '❌ Error';
+                alert('Import error: ' + error.message);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    importBtn.disabled = false;
+                    importBtn.textContent = '📥 Import Events';
+                    importBtn.style.background = 'linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%)';
+                }, 3000);
+            });
+        }
+
+        function importMispAttributes() {
+            if (!mispConfig.connected) {
+                alert('Please test and establish MISP connection first');
+                return;
+            }
+            
+            const importBtn = document.getElementById('importAttributesBtn');
+            importBtn.disabled = true;
+            importBtn.textContent = '🔢 Importing...';
+            showMispStatus('Importing MISP attributes...', 50);
+            
+            fetch('/api/dashboard/misp/import-attributes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    ...mispConfig,
+                    filter: {
+                        category: ['Network activity', 'Payload delivery', 'Artifacts dropped'],
+                        type: ['ip-dst', 'ip-src', 'domain', 'url', 'md5', 'sha1', 'sha256']
+                    }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMispStatus('Attributes import completed!', 100);
+                
+                if (data.status === 'success') {
+                    importBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    importBtn.textContent = `✅ Imported ${data.attributes_imported || 0}`;
+                    
+                    updateMispStatistics(data.updated_stats);
+                    
+                    addNotification({
+                        id: Date.now(),
+                        type: 'info',
+                        title: 'MISP Attributes Imported',
+                        message: `Successfully imported ${data.attributes_imported || 0} attributes from MISP`,
+                        time: new Date(),
+                        read: false,
+                        isLive: true,
+                        source: 'MISP',
+                        actions: [
+                            { action: 'analyze', label: 'Analyze' },
+                            { action: 'dismiss', label: 'Dismiss' }
+                        ]
+                    });
+                    
+                    alert(`✅ Successfully imported ${data.attributes_imported || 0} MISP attributes!`);
+                } else {
+                    importBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                    importBtn.textContent = '❌ Import Failed';
+                    alert('Import failed: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('MISP attributes import error:', error);
+                showMispStatus('Attributes import failed!', 100);
+                importBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                importBtn.textContent = '❌ Error';
+                alert('Import error: ' + error.message);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    importBtn.disabled = false;
+                    importBtn.textContent = '🔢 Import Attributes';
+                    importBtn.style.background = 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)';
+                }, 3000);
+            });
+        }
+
+        function importMispIOCs() {
+            if (!mispConfig.connected) {
+                alert('Please test and establish MISP connection first');
+                return;
+            }
+            
+            const importBtn = document.getElementById('importIOCsBtn');
+            importBtn.disabled = true;
+            importBtn.textContent = '🎯 Importing...';
+            showMispStatus('Importing MISP IOCs...', 50);
+            
+            fetch('/api/dashboard/misp/import-iocs', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    ...mispConfig,
+                    ioc_types: ['ip', 'domain', 'url', 'hash', 'email'],
+                    confidence_threshold: 70,
+                    days_back: 30
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMispStatus('IOCs import completed!', 100);
+                
+                if (data.status === 'success') {
+                    importBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    importBtn.textContent = `✅ Imported ${data.iocs_imported || 0}`;
+                    
+                    updateMispStatistics(data.updated_stats);
+                    
+                    // Create detailed IOC breakdown notification
+                    const iocBreakdown = data.ioc_breakdown || {};
+                    const breakdownText = Object.entries(iocBreakdown)
+                        .map(([type, count]) => `${type}: ${count}`)
+                        .join(', ');
+                    
+                    addNotification({
+                        id: Date.now(),
+                        type: 'critical',
+                        title: 'MISP IOCs Imported',
+                        message: `Imported ${data.iocs_imported || 0} IOCs (${breakdownText})`,
+                        time: new Date(),
+                        read: false,
+                        isLive: true,
+                        source: 'MISP',
+                        actions: [
+                            { action: 'investigate', label: 'Investigate' },
+                            { action: 'feed', label: 'View Feed' },
+                            { action: 'dismiss', label: 'Dismiss' }
+                        ]
+                    });
+                    
+                    alert(`✅ Successfully imported ${data.iocs_imported || 0} MISP IOCs!\\nBreakdown: ${breakdownText}`);
+                } else {
+                    importBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                    importBtn.textContent = '❌ Import Failed';
+                    alert('Import failed: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('MISP IOCs import error:', error);
+                showMispStatus('IOCs import failed!', 100);
+                importBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                importBtn.textContent = '❌ Error';
+                alert('Import error: ' + error.message);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    importBtn.disabled = false;
+                    importBtn.textContent = '🎯 Import IOCs';
+                    importBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }, 3000);
+            });
+        }
+
+        function exportToMisp() {
+            if (!mispConfig.connected) {
+                alert('Please test and establish MISP connection first');
+                return;
+            }
+            
+            const exportBtn = document.getElementById('exportMispBtn');
+            exportBtn.disabled = true;
+            exportBtn.textContent = '📤 Exporting...';
+            showMispStatus('Exporting data to MISP...', 50);
+            
+            fetch('/api/dashboard/misp/export', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    ...mispConfig,
+                    export_options: {
+                        include_threats: true,
+                        include_iocs: true,
+                        include_analysis: true,
+                        create_event: true,
+                        distribution: 1, // Your organization only
+                        threat_level: 3  // High
+                    }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMispStatus('Export to MISP completed!', 100);
+                
+                if (data.status === 'success') {
+                    exportBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    exportBtn.textContent = `✅ Exported ${data.items_exported || 0}`;
+                    
+                    addNotification({
+                        id: Date.now(),
+                        type: 'info',
+                        title: 'Data Exported to MISP',
+                        message: `Successfully exported ${data.items_exported || 0} items to MISP server`,
+                        time: new Date(),
+                        read: false,
+                        isLive: true,
+                        source: 'MISP Export',
+                        actions: [
+                            { action: 'view', label: 'View in MISP' },
+                            { action: 'dismiss', label: 'Dismiss' }
+                        ]
+                    });
+                    
+                    alert(`✅ Successfully exported ${data.items_exported || 0} items to MISP!\\nEvent ID: ${data.event_id || 'N/A'}`);
+                } else {
+                    exportBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                    exportBtn.textContent = '❌ Export Failed';
+                    alert('Export failed: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('MISP export error:', error);
+                showMispStatus('Export to MISP failed!', 100);
+                exportBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                exportBtn.textContent = '❌ Error';
+                alert('Export error: ' + error.message);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    exportBtn.disabled = false;
+                    exportBtn.textContent = '📤 Export to MISP';
+                    exportBtn.style.background = 'linear-gradient(135deg, #fd7e14 0%, #ffc107 100%)';
+                }, 3000);
+            });
+        }
+
+        function syncMispData() {
+            if (!mispConfig.connected) {
+                alert('Please test and establish MISP connection first');
+                return;
+            }
+            
+            const syncBtn = document.getElementById('syncMispBtn');
+            syncBtn.disabled = true;
+            syncBtn.textContent = '🔄 Syncing...';
+            showMispStatus('Synchronizing with MISP...', 30);
+            
+            fetch('/api/dashboard/misp/sync', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    ...mispConfig,
+                    sync_options: {
+                        bidirectional: true,
+                        import_new: true,
+                        export_updates: true,
+                        conflict_resolution: 'misp_priority'
+                    }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMispStatus('MISP synchronization completed!', 100);
+                
+                if (data.status === 'success') {
+                    syncBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    syncBtn.textContent = `✅ Synced`;
+                    
+                    updateMispStatistics(data.updated_stats);
+                    
+                    addNotification({
+                        id: Date.now(),
+                        type: 'warning',
+                        title: 'MISP Synchronization Complete',
+                        message: `Imported: ${data.imported || 0}, Exported: ${data.exported || 0}, Conflicts: ${data.conflicts || 0}`,
+                        time: new Date(),
+                        read: false,
+                        isLive: true,
+                        source: 'MISP Sync',
+                        actions: [
+                            { action: 'details', label: 'View Details' },
+                            { action: 'dismiss', label: 'Dismiss' }
+                        ]
+                    });
+                    
+                    const syncSummary = `✅ MISP Synchronization Complete!
+                    
+Imported: ${data.imported || 0} items
+Exported: ${data.exported || 0} items
+Conflicts Resolved: ${data.conflicts || 0}
+Last Sync: ${new Date().toLocaleString()}`;
+                    
+                    alert(syncSummary);
+                } else {
+                    syncBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                    syncBtn.textContent = '❌ Sync Failed';
+                    alert('Sync failed: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('MISP sync error:', error);
+                showMispStatus('MISP synchronization failed!', 100);
+                syncBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                syncBtn.textContent = '❌ Error';
+                alert('Sync error: ' + error.message);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    syncBtn.disabled = false;
+                    syncBtn.textContent = '🔄 Sync Data';
+                    syncBtn.style.background = 'linear-gradient(135deg, #e83e8c 0%, #d62598 100%)';
+                }, 3000);
+            });
+        }
+
+        // Initialize MISP configuration on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMispConfig();
+        });
+
         function importIntelligence() {
             const source = document.getElementById('importSourceSelect').value;
             const dataText = document.getElementById('importData').value.trim();
@@ -5003,5 +5600,112 @@
             </div>
         </div>
     </div>
+
+    <!-- Copyright Footer -->
+    <footer style="background: rgba(255,255,255,0.95); margin-top: 40px; padding: 30px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); text-align: center; border-top: 3px solid #667eea;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 25px; text-align: left;">
+                <!-- Project Information -->
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 15px; font-size: 18px;">🛡️ CTI-sHARE</h3>
+                    <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                        AI-driven Semantic Framework for Advanced Cyber Threat Analysis and Sharing
+                    </p>
+                    <p style="color: #888; font-size: 14px; line-height: 1.5;">
+                        Professional threat intelligence platform with MISP integration, 
+                        real-time monitoring, and advanced analytics capabilities.
+                    </p>
+                </div>
+                
+                <!-- Features -->
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 15px; font-size: 18px;">✨ Features</h3>
+                    <ul style="color: #666; line-height: 1.8; list-style: none; padding: 0;">
+                        <li>🤖 AI-Powered Threat Analysis</li>
+                        <li>🔗 MISP Framework Integration</li>
+                        <li>⚡ Real-time Monitoring</li>
+                        <li>📊 Advanced Analytics Dashboard</li>
+                        <li>🔔 Smart Alert System</li>
+                        <li>🌐 Collaborative Threat Sharing</li>
+                    </ul>
+                </div>
+                
+                <!-- Technical Stack -->
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 15px; font-size: 18px;">⚙️ Technology</h3>
+                    <ul style="color: #666; line-height: 1.8; list-style: none; padding: 0;">
+                        <li>🐍 Python & Flask Backend</li>
+                        <li>📈 Chart.js Visualizations</li>
+                        <li>🧠 Machine Learning & NLP</li>
+                        <li>🔒 Security-First Architecture</li>
+                        <li>🐳 Docker Containerization</li>
+                        <li>☁️ Cloud-Ready Deployment</li>
+                    </ul>
+                </div>
+                
+                <!-- Contact & Support -->
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 15px; font-size: 18px;">📞 Support</h3>
+                    <p style="color: #666; line-height: 1.6; margin-bottom: 10px;">
+                        For technical support, feature requests, or collaboration inquiries.
+                    </p>
+                    <div style="margin-top: 15px;">
+                        <a href="https://github.com/sbasharjr/CTI-sHARE-AI-driven-Semantic-Framework-for-Advanced-Cyber-Threat-Analysis-and-Sharing" 
+                           style="color: #667eea; text-decoration: none; font-weight: 600; margin-right: 15px;">
+                            📁 GitHub Repository
+                        </a>
+                        <br>
+                        <span style="color: #888; font-size: 14px;">
+                            🌟 Star us on GitHub | 🐛 Report Issues | 💡 Contribute
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Copyright Notice -->
+            <hr style="border: none; height: 1px; background: linear-gradient(90deg, transparent, #ddd, transparent); margin: 25px 0;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div style="color: #666; font-size: 14px;">
+                    <strong>© 2024 CTI-sHARE Project</strong> | 
+                    AI-driven Semantic Framework for Advanced Cyber Threat Analysis and Sharing
+                </div>
+                <div style="color: #888; font-size: 12px; text-align: right;">
+                    <div>🏗️ Developed by <strong>Bashar Intelligence Team</strong></div>
+                    <div style="margin-top: 5px;">
+                        📅 Last Updated: <span id="lastUpdated">October 2024</span> | 
+                        🔢 Version: <strong>v1.0.0</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Copyright Information -->
+            <div style="margin-top: 20px; padding: 15px; background: rgba(102, 126, 234, 0.05); border-radius: 10px; border-left: 4px solid #667eea;">
+                <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">
+                    <strong>📋 License & Usage:</strong> This software is provided for cybersecurity research and threat intelligence purposes. 
+                    All threat intelligence data is anonymized and processed in compliance with privacy regulations. 
+                    MISP integration follows standard threat sharing protocols. 
+                    For commercial licensing or enterprise deployment, please contact the development team.
+                </p>
+            </div>
+            
+            <!-- Security Notice -->
+            <div style="margin-top: 15px; padding: 12px; background: rgba(40, 167, 69, 0.05); border-radius: 8px; border-left: 4px solid #28a745;">
+                <p style="color: #555; font-size: 12px; line-height: 1.5; margin: 0;">
+                    🔒 <strong>Security Notice:</strong> This platform handles sensitive threat intelligence data. 
+                    All communications are encrypted, access is logged, and data retention follows security best practices. 
+                    Report security vulnerabilities responsibly to the development team.
+                </p>
+            </div>
+            
+            <!-- Powered By -->
+            <div style="margin-top: 20px; text-align: center;">
+                <p style="color: #999; font-size: 11px; margin: 0;">
+                    ⚡ Powered by Flask • Chart.js • Machine Learning • MISP Framework • Docker • 
+                    <span style="color: #e74c3c;">❤️</span> Open Source Intelligence Community
+                </p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

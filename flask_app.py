@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple Flask application for CTI-sHARE
+Simple Flask application for CTI-sHARE with MISP Integration
 """
 
 from flask import Flask, jsonify, request, render_template_string
@@ -9,6 +9,14 @@ import json
 from datetime import datetime
 import os
 import sys
+
+# Import MISP integration
+try:
+    from misp_integration import MISPIntegration, create_misp_api_endpoints
+    MISP_AVAILABLE = True
+except ImportError:
+    print("⚠️  MISP integration not available - misp_integration.py not found")
+    MISP_AVAILABLE = False
 
 app = Flask(__name__)
 CORS(app)
@@ -268,9 +276,254 @@ def get_stats():
         'timestamp': datetime.now().isoformat()
     })
 
+# ===================================
+# MISP INTEGRATION API ENDPOINTS
+# ===================================
+
+@app.route('/api/dashboard/misp/test-connection', methods=['POST'])
+def test_misp_connection():
+    """Test MISP server connection"""
+    if not MISP_AVAILABLE:
+        return jsonify({
+            'status': 'error',
+            'message': 'MISP integration not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        server_url = data.get('server_url')
+        api_key = data.get('api_key')
+        organization = data.get('organization', '')
+        
+        misp = MISPIntegration(server_url, api_key, organization)
+        result = misp.test_connection()
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Server error: {str(e)}'
+        }), 500
+
+@app.route('/api/dashboard/misp/import-events', methods=['POST'])
+def import_misp_events():
+    """Import events from MISP"""
+    if not MISP_AVAILABLE:
+        return jsonify({
+            'status': 'error',
+            'message': 'MISP integration not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        server_url = data.get('serverUrl')
+        api_key = data.get('apiKey')
+        organization = data.get('organization', '')
+        
+        misp = MISPIntegration(server_url, api_key, organization)
+        result = misp.import_events(
+            days_back=data.get('days_back', 30),
+            limit=data.get('limit', 100)
+        )
+        
+        # Add imported events to local threats database
+        if result['status'] == 'success':
+            for event in result.get('events', []):
+                threat = {
+                    'id': f"misp_{event['id']}",
+                    'type': 'event',
+                    'category': 'malware',
+                    'severity': 'high' if event.get('threat_level', 3) <= 2 else 'medium',
+                    'description': event.get('info', 'MISP Event'),
+                    'source': 'MISP',
+                    'timestamp': datetime.now().isoformat(),
+                    'misp_data': event
+                }
+                threats_db.append(threat)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Server error: {str(e)}'
+        }), 500
+
+@app.route('/api/dashboard/misp/import-attributes', methods=['POST'])
+def import_misp_attributes():
+    """Import attributes from MISP"""
+    if not MISP_AVAILABLE:
+        return jsonify({
+            'status': 'error',
+            'message': 'MISP integration not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        server_url = data.get('serverUrl')
+        api_key = data.get('apiKey')
+        organization = data.get('organization', '')
+        
+        misp = MISPIntegration(server_url, api_key, organization)
+        
+        filter_data = data.get('filter', {})
+        result = misp.import_attributes(
+            categories=filter_data.get('category', None)
+        )
+        
+        # Add imported attributes to local threats database
+        if result['status'] == 'success':
+            for attr in result.get('attributes', []):
+                threat = {
+                    'id': f"misp_attr_{attr['id']}",
+                    'type': 'attribute',
+                    'category': attr.get('category', 'other'),
+                    'severity': 'high' if attr.get('to_ids') else 'medium',
+                    'description': f"{attr.get('type', '')}: {attr.get('value', '')}",
+                    'source': 'MISP',
+                    'timestamp': datetime.now().isoformat(),
+                    'misp_data': attr
+                }
+                threats_db.append(threat)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Server error: {str(e)}'
+        }), 500
+
+@app.route('/api/dashboard/misp/import-iocs', methods=['POST'])
+def import_misp_iocs():
+    """Import IOCs from MISP"""
+    if not MISP_AVAILABLE:
+        return jsonify({
+            'status': 'error',
+            'message': 'MISP integration not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        server_url = data.get('serverUrl')
+        api_key = data.get('apiKey')
+        organization = data.get('organization', '')
+        
+        misp = MISPIntegration(server_url, api_key, organization)
+        result = misp.import_iocs(
+            ioc_types=data.get('ioc_types', None),
+            confidence_threshold=data.get('confidence_threshold', 70)
+        )
+        
+        # Add imported IOCs to local threats database
+        if result['status'] == 'success':
+            for ioc in result.get('iocs', []):
+                threat = {
+                    'id': f"misp_ioc_{ioc['id']}",
+                    'type': 'ioc',
+                    'category': ioc.get('category', 'indicator'),
+                    'severity': 'critical' if ioc.get('confidence', 0) > 90 else 'high',
+                    'description': f"{ioc.get('type', '')}: {ioc.get('value', '')}",
+                    'source': 'MISP',
+                    'timestamp': datetime.now().isoformat(),
+                    'misp_data': ioc
+                }
+                threats_db.append(threat)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Server error: {str(e)}'
+        }), 500
+
+@app.route('/api/dashboard/misp/export', methods=['POST'])
+def export_to_misp():
+    """Export data to MISP"""
+    if not MISP_AVAILABLE:
+        return jsonify({
+            'status': 'error',
+            'message': 'MISP integration not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        server_url = data.get('serverUrl')
+        api_key = data.get('apiKey')
+        organization = data.get('organization', '')
+        
+        misp = MISPIntegration(server_url, api_key, organization)
+        
+        # Prepare export data from local threats
+        export_options = data.get('export_options', {})
+        export_data = {
+            'threats': [],
+            'iocs': [],
+            'analysis': {},
+            'threat_level': export_options.get('threat_level', 3),
+            'distribution': export_options.get('distribution', 1)
+        }
+        
+        # Convert local threats to MISP format
+        for threat in threats_db:
+            if threat.get('source') != 'MISP':  # Don't re-export MISP data
+                export_item = {
+                    'type': 'text',
+                    'category': 'Other',
+                    'value': threat.get('description', ''),
+                    'comment': f"Exported from CTI-sHARE: {threat.get('type', '')}",
+                    'to_ids': False
+                }
+                export_data['threats'].append(export_item)
+        
+        result = misp.export_to_misp(
+            export_data,
+            create_event=export_options.get('create_event', True)
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Server error: {str(e)}'
+        }), 500
+
+@app.route('/api/dashboard/misp/sync', methods=['POST'])
+def sync_misp_data():
+    """Synchronize data with MISP"""
+    if not MISP_AVAILABLE:
+        return jsonify({
+            'status': 'error',
+            'message': 'MISP integration not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        server_url = data.get('serverUrl')
+        api_key = data.get('apiKey')
+        organization = data.get('organization', '')
+        
+        misp = MISPIntegration(server_url, api_key, organization)
+        
+        sync_options = data.get('sync_options', {})
+        result = misp.sync_data(
+            bidirectional=sync_options.get('bidirectional', True)
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Server error: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
     print("=" * 60)
-    print("🛡️  CTI-sHARE Threat Intelligence API")
+    print("🛡️  CTI-sHARE Threat Intelligence API with MISP Integration")
     print("=" * 60)
     print(f"🌐 Dashboard: http://localhost:5000")
     print(f"🔗 API Base URL: http://localhost:5000/api")
@@ -282,6 +535,20 @@ if __name__ == '__main__':
     print("  GET  /api/threats - Get threats")
     print("  POST /api/analyze - Analyze threat")
     print("  GET  /api/stats - Get statistics")
+    print("=" * 60)
+    if MISP_AVAILABLE:
+        print("🔗 MISP Integration endpoints:")
+        print("  POST /api/dashboard/misp/test-connection - Test MISP connection")
+        print("  POST /api/dashboard/misp/import-events - Import MISP events")
+        print("  POST /api/dashboard/misp/import-attributes - Import MISP attributes")
+        print("  POST /api/dashboard/misp/import-iocs - Import MISP IOCs")
+        print("  POST /api/dashboard/misp/export - Export to MISP")
+        print("  POST /api/dashboard/misp/sync - Sync with MISP")
+        print("=" * 60)
+        print("✅ MISP Framework Integration: ENABLED")
+    else:
+        print("⚠️  MISP Framework Integration: DISABLED")
+        print("   (Install PyMISP: pip install pymisp)")
     print("=" * 60)
     print("Press Ctrl+C to stop the server")
     print("=" * 60)
