@@ -1,3 +1,0 @@
-"""
-Automated threat response modules
-"""
