@@ -11,8 +11,8 @@ from pathlib import Path
 # Get the directory where this file is located
 current_dir = Path(__file__).resolve().parent
 
-# Add src to path
-sys.path.insert(0, str(current_dir / 'src'))
+# Add project root to path
+sys.path.insert(0, str(current_dir))
 
 # Set environment variables for production
 os.environ.setdefault('FLASK_ENV', 'production')
