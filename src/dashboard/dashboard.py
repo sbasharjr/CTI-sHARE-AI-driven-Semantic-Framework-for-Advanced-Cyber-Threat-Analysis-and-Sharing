@@ -629,50 +629,98 @@ class ThreatDashboard:
                 return jsonify({'error': str(e)}), 500
     
     def _get_dashboard_stats(self) -> Dict[str, Any]:
-        """Get overall dashboard statistics"""
+        """Get overall dashboard statistics - optimized for large datasets"""
         total_threats = len(self.threat_history)
         
         if total_threats == 0:
             return {
                 'total_threats': 0,
                 'critical_threats': 0,
+                'high_threats': 0,
+                'medium_threats': 0,
+                'low_threats': 0,
                 'threats_today': 0,
+                'threats_this_week': 0,
                 'detection_rate': 0,
-                'top_category': 'N/A'
+                'top_category': 'N/A',
+                'active_incidents': 0,
+                'resolved_threats': 0
             }
         
-        # Count threats by severity
-        critical_count = sum(1 for t in self.threat_history 
-                            if t.get('severity') == 'CRITICAL')
-        
-        # Count threats today
-        today = datetime.now().date()
-        threats_today = sum(1 for t in self.threat_history 
-                          if datetime.fromisoformat(t.get('timestamp', '')).date() == today)
-        
-        # Get most common category
+        # Count threats by severity (single pass for efficiency)
+        critical_count = 0
+        high_count = 0
+        medium_count = 0
+        low_count = 0
+        threats_today = 0
+        threats_this_week = 0
+        active_incidents = 0
+        resolved_threats = 0
         categories = {}
+        confirmed_threats = 0
+        
+        today = datetime.now().date()
+        week_ago = datetime.now() - timedelta(days=7)
+        
         for t in self.threat_history:
+            severity = t.get('severity', 'MEDIUM')
+            if severity == 'CRITICAL':
+                critical_count += 1
+            elif severity == 'HIGH':
+                high_count += 1
+            elif severity == 'MEDIUM':
+                medium_count += 1
+            elif severity == 'LOW':
+                low_count += 1
+            
+            # Count by time
+            try:
+                timestamp = datetime.fromisoformat(t.get('timestamp', ''))
+                if timestamp.date() == today:
+                    threats_today += 1
+                if timestamp >= week_ago:
+                    threats_this_week += 1
+            except:
+                pass
+            
+            # Category tracking
             cat = t.get('category', 'unknown')
             categories[cat] = categories.get(cat, 0) + 1
+            
+            # Status tracking
+            status = t.get('status', 'active')
+            if status == 'active':
+                active_incidents += 1
+            elif status in ['resolved', 'contained']:
+                resolved_threats += 1
+            
+            # Confirmed threats
+            if t.get('is_threat', False):
+                confirmed_threats += 1
         
         top_category = max(categories.items(), key=lambda x: x[1])[0] if categories else 'N/A'
-        
-        # Detection rate (percentage of confirmed threats)
-        confirmed_threats = sum(1 for t in self.threat_history if t.get('is_threat', False))
         detection_rate = (confirmed_threats / total_threats * 100) if total_threats > 0 else 0
         
         return {
             'total_threats': total_threats,
             'critical_threats': critical_count,
+            'high_threats': high_count,
+            'medium_threats': medium_count,
+            'low_threats': low_count,
             'threats_today': threats_today,
+            'threats_this_week': threats_this_week,
             'detection_rate': round(detection_rate, 2),
-            'top_category': top_category
+            'top_category': top_category,
+            'active_incidents': active_incidents,
+            'resolved_threats': resolved_threats,
+            'dataset_size': f"{total_threats:,}"
         }
     
     def _get_recent_threats(self, limit: int) -> List[Dict[str, Any]]:
-        """Get recent threats"""
-        return self.threat_history[-limit:]
+        """Get recent threats - optimized for large datasets"""
+        # Return most recent threats first, limited to requested amount
+        # For 10k+ datasets, we reverse to show newest first
+        return list(reversed(self.threat_history[-limit:]))
     
     def _get_threat_timeline(self, hours: int) -> List[Dict[str, Any]]:
         """Get threat timeline for last N hours"""
@@ -691,19 +739,30 @@ class ThreatDashboard:
         return result
     
     def _get_threat_by_category(self) -> Dict[str, int]:
-        """Get threat distribution by category"""
+        """Get threat distribution by category - optimized for 10k+ datasets"""
         categories = {}
         for threat in self.threat_history:
             cat = threat.get('category', 'unknown')
             categories[cat] = categories.get(cat, 0) + 1
-        return categories
+        # Return sorted by count for better visualization
+        return dict(sorted(categories.items(), key=lambda x: x[1], reverse=True))
     
     def _get_threat_by_severity(self) -> Dict[str, int]:
-        """Get threat distribution by severity"""
-        severity = {}
+        """Get threat distribution by severity with percentages"""
+        severity = {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'LOW': 0}
         for threat in self.threat_history:
             sev = threat.get('severity', 'MEDIUM')
             severity[sev] = severity.get(sev, 0) + 1
+        
+        total = len(self.threat_history)
+        if total > 0:
+            # Add percentage calculations - create list first to avoid dict resize during iteration
+            percentages = {}
+            for key in list(severity.keys()):
+                count = severity[key]
+                percentages[f"{key}_percent"] = round((count / total) * 100, 2)
+            severity.update(percentages)
+        
         return severity
     
     def _get_threat_geo_distribution(self) -> List[Dict[str, Any]]:
