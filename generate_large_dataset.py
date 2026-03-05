@@ -7,7 +7,7 @@ import json
 import random
 from datetime import datetime, timedelta
 
-def generate_large_threat_dataset(count=10000):
+def generate_large_threat_dataset(count=""):
     """Generate a large dataset of realistic threat intelligence data"""
     
     categories = [

@@ -55,6 +55,20 @@ class TestMainDashboardIntegration:
             content = f.read()
             assert 'from src.dashboard.dashboard import ThreatDashboard' in content
 
+    def test_uploaded_threats_count(self):
+        """Dashboard stats should include a count of upload-sourced threats"""
+        from src.dashboard.dashboard import ThreatDashboard
+        db = ThreatDashboard()
+        # add two threats, one uploaded and one from another source
+        db.add_threat({'id': 1, 'source': 'upload'})
+        db.add_threat({'id': 2, 'source': 'api'})
+        stats = db._get_dashboard_stats()
+        assert 'uploaded_threats' in stats
+        assert stats['uploaded_threats'] == 1
+        # dataset size exact should equal total threats
+        assert 'dataset_size_exact' in stats
+        assert stats['dataset_size_exact'] == stats['total_threats']
+
 
 if __name__ == "__main__":
     pytest.main([__file__, '-v'])

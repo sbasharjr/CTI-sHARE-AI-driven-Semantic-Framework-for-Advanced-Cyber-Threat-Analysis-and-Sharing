@@ -27,6 +27,7 @@ if __name__ == '__main__':
             'severity': 'HIGH',
             'timestamp': '2025-10-22T10:00:00',
             'is_threat': True,
+            'source': 'upload',
             'entities': {'ips': ['192.168.1.100']}
         })
         
@@ -56,6 +57,8 @@ if __name__ == '__main__':
         print(f"  Total Threats: {stats['total_threats']}")
         print(f"  Critical Threats: {stats['critical_threats']}")
         print(f"  Detection Rate: {stats['detection_rate']}%")
+        print(f"  Uploaded Threats: {stats.get('uploaded_threats', 0)}")
+        print(f"  Dataset Size (exact): {stats.get('dataset_size_exact', stats.get('dataset_size',0))}")
         print("=" * 60)
         print("Press Ctrl+C to stop the server")
         print("=" * 60)

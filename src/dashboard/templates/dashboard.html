@@ -1251,6 +1251,10 @@
                 <div class="stat-number" id="systemStatus">Active</div>
                 <div class="stat-label">System Status</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number" id="datasetSize">0</div>
+                <div class="stat-label">Dataset Size</div>
+            </div>
         </div>
 
         <div class="card">
@@ -2247,6 +2251,7 @@
                     document.getElementById('highSeverity').textContent = data.critical_threats || 0;
                     document.getElementById('detectionRate').textContent = (data.detection_rate || 0) + '%';
                     document.getElementById('systemStatus').textContent = 'Active';
+                    document.getElementById('datasetSize').textContent = data.dataset_size_exact !== undefined ? data.dataset_size_exact : (data.dataset_size || 0);
                 })
                 .catch(error => {
                     console.error('Error loading stats:', error);

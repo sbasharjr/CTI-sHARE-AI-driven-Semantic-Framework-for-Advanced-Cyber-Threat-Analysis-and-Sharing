@@ -644,7 +644,8 @@ class ThreatDashboard:
                 'detection_rate': 0,
                 'top_category': 'N/A',
                 'active_incidents': 0,
-                'resolved_threats': 0
+                'resolved_threats': 0,
+                'uploaded_threats': 0
             }
         
         # Count threats by severity (single pass for efficiency)
@@ -658,6 +659,7 @@ class ThreatDashboard:
         resolved_threats = 0
         categories = {}
         confirmed_threats = 0
+        upload_threats = 0
         
         today = datetime.now().date()
         week_ago = datetime.now() - timedelta(days=7)
@@ -697,6 +699,10 @@ class ThreatDashboard:
             # Confirmed threats
             if t.get('is_threat', False):
                 confirmed_threats += 1
+            
+            # Uploaded threats count
+            if t.get('source') == 'upload':
+                upload_threats += 1
         
         top_category = max(categories.items(), key=lambda x: x[1])[0] if categories else 'N/A'
         detection_rate = (confirmed_threats / total_threats * 100) if total_threats > 0 else 0
@@ -713,7 +719,10 @@ class ThreatDashboard:
             'top_category': top_category,
             'active_incidents': active_incidents,
             'resolved_threats': resolved_threats,
-            'dataset_size': f"{total_threats:,}"
+            'uploaded_threats': upload_threats,
+            # dataset size both human-readable and exact
+            'dataset_size': f"{total_threats:,}",
+            'dataset_size_exact': total_threats
         }
     
     def _get_recent_threats(self, limit: int) -> List[Dict[str, Any]]:
